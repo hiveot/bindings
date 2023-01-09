@@ -1,9 +1,289 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="ALL" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="f552812e-8d31-4bd0-b549-1a2fc8161ca7" name="Changes" comment="Tweaks to make writing bindings easier&#10;Cleanup and bug fixes">
+      <change afterPath="$PROJECT_DIR$/bindings.code-workspace" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/owserver/Makefile" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/owserver/cmd/main.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/owserver/docs/EN OW-SERVER-ENET-2-Getting Started-A4.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/owserver/docs/EN+UserMan+OW-SERVER-ENET-2+1.1.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/owserver/docs/owserver-simulation.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/owserver/docs/readme - EDS Scanner Python.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/owserver/go.mod" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/owserver/internal/BindingConfig.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/owserver/internal/HandleActionRequest.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/owserver/internal/HandleConfigRequest.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/owserver/internal/OWServerBinding.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/owserver/internal/OWServerBinding_test.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/owserver/internal/PublishNodeValues.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/owserver/internal/PublishNodes.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/owserver/internal/heartBeat.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../hub/lib/thing/CreateThingID.go.old" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../hub/pkg/pubsub/client/PubSubClient.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/owserver/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/hub.bindings.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/bindings.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/owserver/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/owserver/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/Authn.capnp" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/Authn.capnp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/Directory.capnp" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/Directory.capnp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/Gateway.capnp" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/Gateway.capnp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/History.capnp" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/History.capnp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/Launcher.capnp" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/Launcher.capnp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/Provisioning.capnp" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/Provisioning.capnp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/PubSub.capnp" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/PubSub.capnp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/Resolver.capnp" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/Resolver.capnp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/State.capnp" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/State.capnp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/Thing.capnp" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/Thing.capnp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.capnp/go.sum" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.capnp/go/hubapi/Authn.capnp.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/go/hubapi/Authn.capnp.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.capnp/go/hubapi/Directory.capnp.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/go/hubapi/Directory.capnp.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.capnp/go/hubapi/Gateway.capnp.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/go/hubapi/Gateway.capnp.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.capnp/go/hubapi/History.capnp.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/go/hubapi/History.capnp.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.capnp/go/hubapi/Launcher.capnp.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/go/hubapi/Launcher.capnp.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.capnp/go/hubapi/Provisioning.capnp.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/go/hubapi/Provisioning.capnp.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.capnp/go/hubapi/PubSub.capnp.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/go/hubapi/PubSub.capnp.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.capnp/go/hubapi/Resolver.capnp.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/go/hubapi/Resolver.capnp.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.capnp/go/hubapi/State.capnp.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/go/hubapi/State.capnp.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.capnp/go/hubapi/Thing.capnp.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/go/hubapi/Thing.capnp.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/.idea/hub.iml" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/.idea/hub.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/.idea/modules.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/cmd/hubcli/directorycli/DirectoryCommands.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/cmd/hubcli/directorycli/DirectoryCommands.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/cmd/hubcli/historycli/HistoryCommands.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/cmd/hubcli/historycli/HistoryCommands.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/cmd/hubcli/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/cmd/hubcli/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/docs/README-TD.md" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/docs/README-TD.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/lib/caphelp/Serve.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/lib/caphelp/Serve.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/lib/caphelp/ThingValue.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/lib/caphelp/ThingValue.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/lib/dummy/DummyCapResolver.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/lib/dummy/DummyCapResolver.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/lib/listener/CreateClientConnection.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/lib/listener/CreateClientConnection.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/lib/svcconfig/GetFolders.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/lib/svcconfig/GetFolders.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/lib/svcconfig/SvcConfig.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/lib/svcconfig/SvcConfig.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/lib/thing/DataSchema.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/lib/thing/DataSchema.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/lib/thing/ThingAddr.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/lib/thing/ThingAddr_test.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/lib/thing/ThingDescription.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/lib/thing/ThingDescription_test.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/lib/thing/ThingValue.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/lib/thing/ThingValue.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/authn/IAuthn.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/authn/IAuthn.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/authn/cmd/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/authn/cmd/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/authz/IAuthz.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/authz/IAuthz.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/authz/cmd/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/authz/cmd/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/bucketstore/BucketStore_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/bucketstore/BucketStore_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/certs/ICerts.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/certs/ICerts.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/certs/cmd/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/certs/cmd/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/directory/Directory_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/directory/Directory_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/directory/IDirectory.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/directory/IDirectory.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/directory/capnpclient/ReadDirectoryCapnpClient.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/directory/capnpclient/ReadDirectoryCapnpClient.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/directory/capnpclient/UpdateDirectoryCapnpClient.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/directory/capnpclient/UpdateDirectoryCapnpClient.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/directory/capnpserver/ReadDirectoryCapnpServer.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/directory/capnpserver/ReadDirectoryCapnpServer.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/directory/capnpserver/UpdateDirectoryCapnpServer.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/directory/capnpserver/UpdateDirectoryCapnpServer.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/directory/cmd/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/directory/cmd/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/directory/service/DirectoryService.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/directory/service/DirectoryService.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/directory/service/ReadDirectory.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/directory/service/ReadDirectory.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/directory/service/UpdateDirectory.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/directory/service/UpdateDirectory.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/gateway/Gateway_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/gateway/Gateway_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/gateway/IGateway.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/gateway/IGateway.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/gateway/cmd/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/gateway/cmd/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/history/HistoryBench_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/history/HistoryBench_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/history/History_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/history/History_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/history/IHistory.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/history/IHistory.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/history/capnpclient/HistoryServiceCapnpClient.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/history/capnpclient/HistoryServiceCapnpClient.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/history/capnpserver/AddHistoryCapnpServer.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/history/capnpserver/AddHistoryCapnpServer.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/history/capnpserver/HistoryServiceCapnpServer.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/history/capnpserver/HistoryServiceCapnpServer.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/history/capnpserver/ReadHistoryCapnpServer.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/history/capnpserver/ReadHistoryCapnpServer.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/history/cmd/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/history/cmd/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/history/service/AddAnyThing.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/history/service/AddAnyThing.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/history/service/AddHistory.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/history/service/AddHistory.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/history/service/HistoryCursor.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/history/service/HistoryCursor.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/history/service/HistoryService.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/history/service/HistoryService.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/history/service/PropertiesStore.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/history/service/PropertiesStore.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/history/service/ReadHistory.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/history/service/ReadHistory.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/launcher/ILauncher.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/launcher/ILauncher.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/launcher/Launcher_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/launcher/Launcher_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/launcher/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/launcher/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/launcher/cmd/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/launcher/cmd/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/launcher/service/LauncherService.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/launcher/service/LauncherService.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/provisioning/IProvisioning.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/provisioning/IProvisioning.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/provisioning/cmd/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/provisioning/cmd/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/pubsub/IPubSub.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/pubsub/IPubSub.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/pubsub/PubSubBench_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/pubsub/PubSubBench_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/pubsub/PubSub_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/pubsub/PubSub_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/pubsub/capnpclient/DevicePubSubCapnpClient.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/pubsub/capnpclient/DevicePubSubCapnpClient.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/pubsub/capnpclient/PubSubCapnpClient.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/pubsub/capnpclient/PubSubCapnpClient.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/pubsub/capnpclient/ServicePubSubCapnpClient.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/pubsub/capnpclient/ServicePubSubCapnpClient.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/pubsub/capnpclient/UserPubSubCapnpClient.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/pubsub/capnpclient/UserPubSubCapnpClient.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/pubsub/capnpserver/PubSubCapnpServer.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/pubsub/capnpserver/PubSubCapnpServer.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/pubsub/capnpserver/ServicePubSubCapnpServer.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/pubsub/capnpserver/ServicePubSubCapnpServer.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/pubsub/capnpserver/UserPubSubCapnpServer.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/pubsub/capnpserver/UserPubSubCapnpServer.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/pubsub/cmd/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/pubsub/cmd/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/pubsub/core/PubSubCore.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/pubsub/core/PubSubCore.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/pubsub/service/DevicePubSub.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/pubsub/service/DevicePubSub.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/pubsub/service/PubSubService.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/pubsub/service/PubSubService.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/pubsub/service/ServicePubSub.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/pubsub/service/ServicePubSub.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/pubsub/service/UserPubSub.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/pubsub/service/UserPubSub.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/pubsub/service/topics.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/pubsub/service/topics.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/resolver/IResolver.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/resolver/IResolver.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/resolver/capnpserver/ResolverServerCapnpServer.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/resolver/capnpserver/ResolverServerCapnpServer.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/resolver/capprovider/CapServer.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/resolver/capprovider/CapServer.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/resolver/cmd/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/resolver/cmd/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/resolver/service/ResolverService.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/resolver/service/ResolverService.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/state/IStateService.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/state/IStateService.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub/pkg/state/cmd/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub/pkg/state/cmd/main.go" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ChangesViewManager">
+    <option name="groupingKeys">
+      <option value="directory" />
+    </option>
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Go File" />
+      </list>
+    </option>
+  </component>
+  <component name="GOROOT" url="file:///snap/go/10008" />
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GoLibraries">
+    <option name="indexEntireGoPath" value="true" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProjectId" id="2JqIBQvcKmtb1OuRTBTWYUAa9cO" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
   <component name="ProjectViewState">
     <option name="autoscrollFromSource" value="true" />
     <option name="autoscrollToSource" value="true" />
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ASKED_ADD_EXTERNAL_FILES": "true",
+    "DefaultGoTemplateProperty": "Go File",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.go.formatter.settings.were.checked": "true",
+    "RunOnceActivity.go.migrated.go.modules.settings": "true",
+    "RunOnceActivity.go.modules.go.list.on.any.changes.was.set": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "go.import.settings.migrated": "true",
+    "go.sdk.automatically.set": "true",
+    "last_opened_file_path": "/home/henk/dev/hiveot/hub",
+    "node.js.detected.package.eslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "go.autoimport"
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/owserver" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Go Test.go test github.com/hiveot/hub/pkg/launcher">
+    <configuration name="TestAction in github.com/hiveot/bindings/owserver/internal" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="bindings" />
+      <working_directory value="$PROJECT_DIR$/owserver/internal" />
+      <root_directory value="$PROJECT_DIR$/owserver" />
+      <kind value="PACKAGE" />
+      <package value="github.com/hiveot/bindings/owserver/internal" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
+      <pattern value="^\QTestAction\E$" />
+      <method v="2" />
+    </configuration>
+    <configuration name="TestPoll in github.com/hiveot/bindings/owserver/internal" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="bindings" />
+      <working_directory value="$PROJECT_DIR$/owserver/internal" />
+      <root_directory value="$PROJECT_DIR$/owserver" />
+      <kind value="PACKAGE" />
+      <package value="github.com/hiveot/bindings/owserver/internal" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
+      <pattern value="^\QTestPoll\E$" />
+      <method v="2" />
+    </configuration>
+    <configuration name="TestPollInvalidEDSAddress in github.com/hiveot/bindings/owserver/internal" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="bindings" />
+      <working_directory value="$PROJECT_DIR$/owserver/internal" />
+      <root_directory value="$PROJECT_DIR$/owserver" />
+      <kind value="PACKAGE" />
+      <package value="github.com/hiveot/bindings/owserver/internal" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
+      <pattern value="^\QTestPollInvalidEDSAddress\E$" />
+      <method v="2" />
+    </configuration>
+    <configuration name="TestStartStop in github.com/hiveot/bindings/owserver/internal" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="bindings" />
+      <working_directory value="$PROJECT_DIR$/owserver/internal" />
+      <root_directory value="$PROJECT_DIR$/owserver" />
+      <kind value="PACKAGE" />
+      <package value="github.com/hiveot/bindings/owserver/internal" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
+      <pattern value="^\QTestStartStop\E$" />
+      <method v="2" />
+    </configuration>
+    <configuration name="go test github.com/hiveot/hub/pkg/launcher" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="hub" />
+      <working_directory value="$PROJECT_DIR$/../hub/pkg/launcher" />
+      <root_directory value="$PROJECT_DIR$/../hub" />
+      <kind value="PACKAGE" />
+      <package value="github.com/hiveot/hub/pkg/launcher" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Go Test.go test github.com/hiveot/hub/pkg/launcher" />
+        <item itemvalue="Go Test.TestAction in github.com/hiveot/bindings/owserver/internal" />
+        <item itemvalue="Go Test.TestPollInvalidEDSAddress in github.com/hiveot/bindings/owserver/internal" />
+        <item itemvalue="Go Test.TestPoll in github.com/hiveot/bindings/owserver/internal" />
+        <item itemvalue="Go Test.TestStartStop in github.com/hiveot/bindings/owserver/internal" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Tweaks to make writing bindings easier&#10;Cleanup and bug fixes" />
+    <option name="LAST_COMMIT_MESSAGE" value="Tweaks to make writing bindings easier&#10;Cleanup and bug fixes" />
+  </component>
+  <component name="VgoProject">
+    <settings-migrated>true</settings-migrated>
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/bindings$go_test_github_com_hiveot_bindings_owserver_internal.out" NAME="go test github.com/hiveot/bindings/owserver/internal Coverage Results" MODIFIED="1673231432449" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
+    <SUITE FILE_PATH="coverage/bindings$TestAction_in_github_com_hiveot_bindings_owserver_internal.out" NAME="TestAction in github.com/hiveot/bindings/owserver/internal Coverage Results" MODIFIED="1673202344558" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
+    <SUITE FILE_PATH="coverage/bindings$go_test_github_com_hiveot_bindings_owserver_internal_eds.out" NAME="go test github.com/hiveot/bindings/owserver/internal/eds Coverage Results" MODIFIED="1673205592844" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
+    <SUITE FILE_PATH="coverage/bindings$TestParseNodeFile_in_github_com_hiveot_bindings_owserver_internal_eds.out" NAME="TestParseNodeFile in github.com/hiveot/bindings/owserver/internal/eds Coverage Results" MODIFIED="1673205543275" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
+    <SUITE FILE_PATH="coverage/bindings$go_test_github_com_hiveot_hub_pkg_directory.out" NAME="go test github.com/hiveot/hub/pkg/directory Coverage Results" MODIFIED="1673156131669" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
   </component>
 </project>

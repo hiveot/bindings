@@ -1,0 +1,17 @@
+{
+    "folders": [
+        {
+            "path": "."
+        },
+        {
+            "path": "../hub"
+        },
+        {
+            "path": "../hub.capnp"
+        }
+    ],
+    "settings": {
+        "scm.autoReveal": true,
+        "explorer.autoReveal": true
+    }
+}

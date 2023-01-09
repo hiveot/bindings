@@ -1,11 +1,16 @@
 # OWServer
 
-HiveOT 1-wire protocol binding for OWServer gateway
+HiveOT 1-wire protocol binding for OWServer-v2 gateway.
 
+
+## Objective
+
+Convert EDS OWServer 1-wire devices to WoT Things.
 
 ## Status
 
-This binding is in development.
+This binding is in alpha. It is functional but breaking changes can still happen.
+
 
 ## Summary
 
@@ -13,19 +18,26 @@ The OWServer binding discovers and connects to 1-wire gateways to read informati
 
 This binding:
 * is implemented in golang.
+* auto discovers OWServer V2 gateways on the local network using port 30303
 * uses the owserver REST API to retrieve information.
 * connects to the hiveot pub/sub service via the resolver or the gateway, using the capnp protocol.
 * publishes TD documents for connected devices
 * publishes updates sensor values periodically and on change.
 * has configuration to:
-  * set owserver address or use mdns discovery
+  * use mdns auto discovery or set an owserver address  
   * set credentials to access the 1-wire gateway 
-  * enable/disable 1-wire sensor publications
-  * set the poll interval 
-  * set the check and publication periods
-  * set the value change needed to automatically publish changed values
-  * change the name of a sensor
-  * set the location of a sensor
+  * the poll interval 
+  * the interval values are republished regardless if they have not changed
 
-This binding does not:
-* use snmp traps to get notifications
+
+## Dependencies
+
+1. A working EDS OWServer gateway on the local network. 
+2. This binding works with the [HiveOT Hub](https://github.com/hiveot/hub).
+
+
+## Usage
+
+This binding runs out of the box. Build and install with the hub services into the bin/bindings folder and start it using the launcher.
+
+Out of the box it will use MDNS discovery to locate an owserver gateway on the network. Once started, the binding is added to the directory, as is the discovered owserver gateway. It can be viewed using the cli or hiveoview web server.

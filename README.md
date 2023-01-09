@@ -1,4 +1,4 @@
-# hiveot.bindings
+# HiveOT Bindings
 
 This repository holds a collection of bindings for use with the HiveOT Hub.
 
@@ -11,80 +11,75 @@ HiveOT aims to be WoT compatible. The primary means of interaction with IoT Thin
 
 Hiveot bindings in this repository follow this standard to define and interact with IoT devices and services using the HiveOT Hub. 
 
-These bindings fall into the following categories:
-* Protocol bindings converts devices from 3rd party IoT protocols into 'WoT Things' on the HiveOT Hub.
-  * for example: zwave, 1-wire, zigbee, coap, snmp, philips hue 
-* User interface bindings provides a user interface to interact with Things using the Hub.
-  * For example, web browser UI
-* Gateway bindings provide access to HiveOT service APIs using a gateway protocol.
-  * these bindings allow access to Thing directory, history, receive events and publish actions using standard network protocols.  
-  * for example: mqtt, websockets, gRPC 
-* Integration bindings intergrate with 3rd party services and creates WoT Things for the offered services.
-  * for example: pihole, zoneminder, ifttt, weather services
-* Thing bindings turns device hardware or local services into a WoT compatible Thing using pubsub of events and actions.
-  * For example, pcmon
 
 ## Status
 
 In development. Once the Hub reaches alpha more bindings will be added.
 
-## Completed Bindings
+### IoT Protocol Bindings
 
-none yet. It is still early days.
+IoT protocol bindings converts devices from 3rd party IoT protocols into 'WoT Things' on the HiveOT Hub.
 
-## Currently Being Worked On
-
-* owserver 1-wire protocol binding
-
-# Bindings For Future Consideration
-
-### Protocol Bindings
-
-* coap - binding to CoAP protocol
-* hue - binding to philips hue lights
-* isy99x - protocol binding for insteon devices using the isy99x gateway
-  * Status: planned
-* lorawan - binding to LoraWan protocol
-* owserver - protocol binding for the 1-wire protocol via OWServer V2 gateway
-  * Status: planning
-* snmpscan  - scan network for snmp devices and report their status
-  * various network device support
-* zigbee - binding to zigbee devices
-* zwave  - protocol binding for zwave USB stick controllers
-  * Status: planned
+| name     | description                                    | status                                           |
+|----------|------------------------------------------------|--------------------------------------------------|
+| coap     | CoAP device support on the local network       | <span style="color:red">todo</span>              |
+| isy99x   | Insteon protocol adapter using isy99 gateway   | <span style="color:red">planned</span>           |
+| lora     | LoRa Protocol binding for LoRa gateway         | <span style="color:red">todo</span>              |
+| owserver | 1-wire support through the OWServer-V2 gateway | <span style="color:orange">in development</span> |
+| phue     | Philips Hue protocol adapter                   | <span style="color:red">todo</span>              |
+| snmp     | Scan network for snmp devices                  | <span style="color:red">todo</span>              |
+| zigbee   | binding to zigbee devices                      | <span style="color:red">todo</span>              |
+| zwaveusb | ZWave support using USB controller             | <span style="color:red">todo</span>              |
 
 ### User Interface Bindings
 
-* hiveoview - user interface binding for viewing hiveot devices in the web browser
-  * Status: planning
-* talk2action - talk to Thing actions
-* event2speech - converts events into speech 
+User interface bindings provides a user interface to interact with Things using the Hub.
+
+| name        | description                                 | status                                 |
+|-------------|---------------------------------------------|----------------------------------------|
+| hiveoview   | view hiveot devices in the web browser      | <span style="color:red">planned</span> |
+| talk2action | talk to Thing actions                       | <span style="color:red">todo</span>    |
+| larynx      | converts events into speech                 | <span style="color:red">todo</span>    |
+| mimic3      | converts events into speech using MycroftAI | <span style="color:red">todo</span>    |
 
 ### Gateway Bindings
 
-* mosquittogw - mqtt gateway using mosquitto
-* wesocketgw - websocket gateway using node express
-* grpcgw - gRPC gateway to services
-* restgw - http REST api to hub services 
+Gateway bindings provide access to HiveOT service APIs using a gateway protocol. these bindings allow access to Thing directory, history, receive events and publish actions using standard network protocols.
+
+| name        | description                         | status                                  |
+|-------------|-------------------------------------|-----------------------------------------|
+| gateway     | API gateway using capnp (default)   | <span style="color:orange">alpha</span> |
+| mosquittogw | mqtt gateway using mosquitto        | <span style="color:red">todo</span>     |
+| websocketgw | websocket gateway for notifications | <span style="color:red">todo</span>     |
+| grpcgw      | gRPC gateway to services            | <span style="color:red">todo</span>     |
+| restgw      | http REST api to hub services       | <span style="color:red">planned</span>  |
 
 ### Integration Bindings
 
-* aurora watch - monitoring of space weather
-* envirocan - environment canada weather integration
-* weathernet - obtain weather forecast for location
-* darksky - weather provider integration
-* ifttt - if this then that integration
-* ipcam - integration binding for ip camera control and image retrieval
-  * Status: planned
-* lightning - monitor lightning near location
-* notify - send notifications over email, sms, voip
-* pihole - pihole integration
-* unifi - Ubiquity unifi device monitoring
-* weatherbit - air quality monitor integration
-* zm - zoneminder integration
+Integration bindings intergrate with 3rd party services and devices, and creates WoT Things for the offered services.
+
+| name         | description                                         | status                                    |
+|--------------|-----------------------------------------------------|-------------------------------------------|
+| aurora watch | monitoring of space weather                         | <span style="color:red">todo</span>       |
+| envirocan    | environment canada weather integration              | <span style="color:orange">planned</span> |
+| darksky      | weather provider integration                        | <span style="color:red">todo</span>       |
+| ifttt        | 'if this then that' service integration             | <span style="color:red">todo</span>       |
+| lightning    | monitor lightning near location                     | <span style="color:red">todo</span>       |
+| notify       | send and receive notifications over email, sms, ... | <span style="color:red">todo</span>       |
+| pihole       | pihole integration                                  | <span style="color:red">todo</span>       |
+| unifi        | Ubiquity unifi device monitoring                    | <span style="color:red">todo</span>       |
+| weatherbit   | air quality monitor integration                     | <span style="color:red">todo</span>       |
+| weathernet   | obtain weather forecast for location                | <span style="color:red">todo</span>       |
+| zm           | zoneminder integration                              | <span style="color:red">todo</span>       |
 
 ### Thing Bindings
 
-* devmon - run a PC monitor and report performance and resource usage on the device
-* cping - monitor connectivity using ping where the target is a 'thing'
-* loctrack - tracking of device locations through bluetooth, wifi and gps
+Thing bindings are embedded in a device or service and turns these into WoT compatible Things. 
+
+| name     | description                                                   | status                                    |
+|----------|---------------------------------------------------------------|-------------------------------------------|
+| automate | rule based automation                                         | <span style="color:red">todo</span>       |
+| cping    | monitor connectivity using ping where the target is a 'thing' | <span style="color:red">todo</span>       |
+| ipcam    | IP camera control and image retrieval                         | <span style="color:orange">planned</span> |
+| locator  | tracking of device locations through bluetooth, wifi and gps  | <span style="color:red">todo</span>       |
+| monit    | run Monitor the status of a computer                          | <span style="color:red">todo</span>       |

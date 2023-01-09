@@ -2,7 +2,9 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/hub.bindings.iml" filepath="$PROJECT_DIR$/.idea/hub.bindings.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/bindings.iml" filepath="$PROJECT_DIR$/.idea/bindings.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../hub/.idea/hub.iml" filepath="$PROJECT_DIR$/../hub/.idea/hub.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../hub.capnp/.idea/hub.capnp.iml" filepath="$PROJECT_DIR$/../hub.capnp/.idea/hub.capnp.iml" />
     </modules>
   </component>
 </project>
