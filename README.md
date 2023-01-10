@@ -14,22 +14,23 @@ Hiveot bindings in this repository follow this standard to define and interact w
 
 ## Status
 
-In development. Once the Hub reaches alpha more bindings will be added.
+This binding is functional but breaking changes can still be expected.
+
 
 ### IoT Protocol Bindings
 
 IoT protocol bindings converts devices from 3rd party IoT protocols into 'WoT Things' on the HiveOT Hub.
 
-| name     | description                                    | status                                           |
-|----------|------------------------------------------------|--------------------------------------------------|
-| coap     | CoAP device support on the local network       | <span style="color:red">todo</span>              |
-| isy99x   | Insteon protocol adapter using isy99 gateway   | <span style="color:red">planned</span>           |
-| lora     | LoRa Protocol binding for LoRa gateway         | <span style="color:red">todo</span>              |
-| owserver | 1-wire support through the OWServer-V2 gateway | <span style="color:orange">in development</span> |
-| phue     | Philips Hue protocol adapter                   | <span style="color:red">todo</span>              |
-| snmp     | Scan network for snmp devices                  | <span style="color:red">todo</span>              |
-| zigbee   | binding to zigbee devices                      | <span style="color:red">todo</span>              |
-| zwaveusb | ZWave support using USB controller             | <span style="color:red">todo</span>              |
+| name     | description                                    | status                                       |
+|----------|------------------------------------------------|----------------------------------------------|
+| coap     | CoAP device support on the local network       | <span style="color:red">todo</span>          |
+| isy99x   | Insteon protocol adapter using isy99 gateway   | <span style="color:red">planned</span>       |
+| lora     | LoRa Protocol binding for LoRa gateway         | <span style="color:red">todo</span>          |
+| owserver | 1-wire support through the OWServer-V2 gateway | <span style="color:orange">functional</span> |
+| phue     | Philips Hue protocol adapter                   | <span style="color:red">todo</span>          |
+| snmp     | Scan network for snmp devices                  | <span style="color:red">todo</span>          |
+| zigbee   | binding to zigbee devices                      | <span style="color:red">todo</span>          |
+| zwaveusb | ZWave support using USB controller             | <span style="color:red">todo</span>          |
 
 ### User Interface Bindings
 

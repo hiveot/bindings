@@ -32,63 +32,6 @@ func (binding *OWServerBinding) setPrevValue(nodeID, attrName string, value stri
 	}
 }
 
-// PollNodeValues obtains values of each 1-wire node and converts the EDS property names to vocabulary names.
-// This returns a map of device/node IDs containing a maps of property name-value pairs
-//func (binding *OWServerBinding) PollNodeValues() (nodeValues map[string](map[string]interface{}), err error) {
-//
-//	if binding.edsAPI == nil || !binding.isRunning.Load() {
-//		err = fmt.Errorf("EDS API not initialized")
-//		logrus.Error(err)
-//		return
-//	}
-//	nodeValues, err = binding.edsAPI.PollValues()
-//	// update service properties if enabled
-//	if binding.Config.PublishTD {
-//		serviceProps := make(map[string]interface{})
-//		serviceProps[vocab.PropNameGatewayAddress] = binding.edsAPI.GetLastAddress()
-//		nodeValues[binding.Config.ClientID] = serviceProps
-//	}
-//	return nodeValues, err
-//}
-
-// PublishValues publishes node property values of each node
-// This takes a map of 1-wire node IDs and its property key-value map and emits them as an update event.
-// Properties are combined as submitted as a single 'properties' event.
-// Sensor values are send as individual events
-//
-//	onlyChanges, send the event only with changed values
-//func (binding *OWServerBinding) PublishValues(
-//	thingValues map[string]map[string]string, onlyChanges bool) (err error) {
-//
-//	ctx := context.Background()
-//	// Iterate the devices and their properties
-//	for deviceID, propValues := range thingValues {
-//		// send all changed property attributes in a single properties event
-//		attrMap := make(map[string][]byte)
-//
-//		for propName, propValue := range propValues {
-//			skip := false
-//			if onlyChanges {
-//				prevValue := getPrevValue(deviceID, propName)
-//				skip = prevValue == propValue
-//			}
-//			if !skip {
-//				attrName, isAttr := eds.AttrVocab[propName]
-//				_, isSensor := eds.SensorTypeVocab[propName]
-//				if isSensor {
-//					err = binding.pubsub.PubEvent(ctx, deviceID, propName, []byte(propValue))
-//				} else if isAttr && attrName != "" {
-//					attrMap[propName] = []byte(propValue)
-//				}
-//			}
-//		}
-//		if len(attrMap) > 0 {
-//			err = binding.pubsub.PubProperties(ctx, deviceID, attrMap)
-//		}
-//	}
-//	return err
-//}
-
 // PublishNodeValues publishes node property values of each node
 // Properties are combined as submitted as a single 'properties' event.
 // Sensor values are send as individual events

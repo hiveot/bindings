@@ -21,7 +21,6 @@ func (binding *OWServerBinding) HandleActionRequest(action *thing.ThingValue) {
 	// to the EDS writable property name.
 
 	// which node is this action for?
-	// FIXME: who removes the urn prefix
 	deviceID := action.ThingID
 
 	// lookup the action name used by the EDS
@@ -46,8 +45,8 @@ func (binding *OWServerBinding) HandleActionRequest(action *thing.ThingValue) {
 		//actionValue = fmt.Sprint(ValueAsInt())
 	}
 	err := binding.edsAPI.WriteData(deviceID, edsName, string(actionValue))
-	// read the result
 
+	// read the result
 	time.Sleep(time.Second)
 	_ = binding.RefreshPropertyValues(true)
 

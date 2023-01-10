@@ -51,7 +51,10 @@ type OWServerBinding struct {
 // CreateBindingTD generates a TD document for this binding
 func (binding *OWServerBinding) CreateBindingTD() *thing.TD {
 	thingID := binding.Config.BindingID
-	td := thing.NewTD(thingID, "OWServer binding", vocab.DeviceTypeService)
+	td := thing.NewTD(thingID, "OWServer binding", vocab.DeviceTypeBinding)
+	prop := td.AddProperty(vocab.PropNamePollInterval, "poll interval", vocab.WoTDataTypeInteger)
+	prop.Unit = vocab.UnitNameSecond
+	prop.ReadOnly = false
 	return td
 }
 
