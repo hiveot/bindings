@@ -8,18 +8,19 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/hiveot/bindings/owserver/internal"
+	"github.com/hiveot/hub/lib/hubclient"
+
 	"github.com/hiveot/hub/lib/listener"
 	"github.com/hiveot/hub/lib/svcconfig"
 	"github.com/hiveot/hub/pkg/pubsub"
-	"github.com/hiveot/hub/pkg/pubsub/client"
+
+	"github.com/hiveot/bindings/owserver/internal"
 )
 
 func main() {
+	f, bindingCert, caCert := svcconfig.SetupFolderConfig(internal.DefaultBindingID)
 	bindingConfig := internal.NewBindingConfig()
-	f, bindingCert, caCert := svcconfig.LoadServiceConfig(
-		internal.DefaultBindingID, false, &bindingConfig)
-	_ = f
+	f.LoadConfig(&bindingConfig)
 
 	//logging.SetLogging(bindingConfig.Loglevel, hubConfig.LogFile)
 	pubSubSvc, err := ConnectToHub(
@@ -47,10 +48,10 @@ func main() {
 func ConnectToHub(instanceID, network, address string,
 	bindingCert *tls.Certificate, caCert *x509.Certificate) (pubsub.IDevicePubSub, error) {
 
-	conn, err := listener.ConnectToHub(network, address, bindingCert, caCert)
+	conn, err := hubclient.ConnectToHub(network, address, bindingCert, caCert)
 	if err != nil {
 		return nil, err
 	}
-	cl, err := client.GetDevicePubSubClient(conn, instanceID)
+	cl, err := hubclient.GetDevicePubSubClient(conn, instanceID)
 	return cl, err
 }

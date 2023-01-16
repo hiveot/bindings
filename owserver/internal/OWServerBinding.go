@@ -10,10 +10,12 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/hiveot/bindings/owserver/internal/eds"
-	"github.com/hiveot/hub.capnp/go/vocab"
 	"github.com/hiveot/hub/lib/thing"
 	"github.com/hiveot/hub/pkg/pubsub"
+
+	"github.com/hiveot/hub.capnp/go/vocab"
+
+	"github.com/hiveot/bindings/owserver/internal/eds"
 )
 
 // OWServerBinding is the hub protocol binding plugin for capturing 1-wire OWServer V2 Data
