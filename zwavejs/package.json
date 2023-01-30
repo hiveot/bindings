@@ -1,0 +1,21 @@
+{
+    "name": "zwavebinding",
+    "version": "0.0.1",
+    "description": "HiveOT Zwave binding using zwave-js",
+    "license": "MIT",
+    "main": "src/main.ts",
+    "scripts": {
+        "start": "tsc && node dist/main.js",
+        "version": "node --version"
+    },
+    "dependencies": {
+        "@zwave-js/config": "^10.4.0",
+        "@zwave-js/core": "^10.4.0",
+        "md5": "^2.3.0",
+        "zwave-js": "^10.4.0"
+    },
+    "devDependencies": {
+        "@types/md5": "^2.3.2",
+        "@types/node": "^18.11.18"
+    }
+}
