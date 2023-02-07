@@ -10,13 +10,12 @@ type OWServerBindingConfig struct {
 	// Default is 'owserver'. Recommended is to add a '-1' in case of multiple instances.
 	BindingID string `yaml:"bindingID"`
 
-	// HubNetwork optional network to connect with.
-	// Default "" is tcp. Use 'unix' for UDS
-	HubNetwork string `yaml:"hubNetwork,omitempty"`
-
-	// HubAddress optional address:port to connect to.
-	// Default "" is auto discovery trying resolver first and gateway second.
-	HubAddress string `yaml:"hubAddress,omitempty"`
+	// HubURL optional hub address to connect to
+	// Default "" for auto discovery.
+	// * "unix://path/to/socket"    for UDS
+	// * "tcp://address:8443/"    for TCP/TLS
+	// * "wss://address:8444/ws"  for Websocket
+	HubURL string `yaml:"hubUrl,omitempty"`
 
 	// OWServerAddress optional http://address:port of the EDS OWServer-V2 gateway.
 	// Default "" is auto-discover using DNS-SD

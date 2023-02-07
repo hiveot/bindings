@@ -9,10 +9,10 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/hiveot/hub/lib/hubclient"
-
 	"github.com/hiveot/hub/lib/listener"
 	"github.com/hiveot/hub/lib/svcconfig"
 	"github.com/hiveot/hub/pkg/pubsub"
+	"github.com/hiveot/hub/pkg/pubsub/capnpclient"
 
 	"github.com/hiveot/bindings/owserver/internal"
 )
@@ -25,8 +25,7 @@ func main() {
 	//logging.SetLogging(bindingConfig.Loglevel, hubConfig.LogFile)
 	pubSubSvc, err := ConnectToHub(
 		bindingConfig.BindingID,
-		bindingConfig.HubNetwork,
-		bindingConfig.HubAddress,
+		bindingConfig.HubURL,
 		bindingCert, caCert)
 
 	if err != nil {
@@ -45,13 +44,17 @@ func main() {
 }
 
 // ConnectToHub obtains the pubsub client from the Hub
-func ConnectToHub(instanceID, network, address string,
+func ConnectToHub(instanceID, fullUrl string,
 	bindingCert *tls.Certificate, caCert *x509.Certificate) (pubsub.IDevicePubSub, error) {
 
-	conn, err := hubclient.ConnectToHub(network, address, bindingCert, caCert)
+	rpcConn, hubClient, err := hubclient.ConnectToHubClient(fullUrl, bindingCert, caCert)
+	//conn, err := hubclient.ConnectToHub(fullUrl, bindingCert, caCert)
 	if err != nil {
 		return nil, err
 	}
-	cl, err := hubclient.GetDevicePubSubClient(conn, instanceID)
-	return cl, err
+	//cl, err := hubclient.GetDevicePubSubClient(conn, instanceID)
+	pubsubCl := capnpclient.NewPubSubClient(rpcConn, hubClient)
+	deviceClient, err := pubsubCl.CapDevicePubSub(context.Background(), instanceID)
+
+	return deviceClient, err
 }
