@@ -6,12 +6,14 @@
     "main": "src/main.ts",
     "scripts": {
         "start": "tsc && node dist/main.js",
+        "run": "node static/main.js",
         "version": "node --version"
     },
     "dependencies": {
         "@zwave-js/config": "^10.4.0",
         "@zwave-js/core": "^10.4.0",
         "md5": "^2.3.0",
+        "ws": "^8.12.0",
         "zwave-js": "^10.4.0"
     },
     "devDependencies": {

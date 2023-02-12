@@ -1,14 +1,8 @@
-import { ConfigManager } from "@zwave-js/config";
-import { cp } from "fs";
 import { BinarySensorType, getEnumMemberName, MultilevelSwitchCommand, NodeStatus, ValueID, ValueType, ZWaveNode, ZWavePlusNodeType, ZWavePlusRoleType, ValueMetadataString, ValueMetadataNumeric, ValueMetadataBoolean, ValueMetadataAny, Driver, CommandClass, ConfigurationCC, BatteryReplacementStatus, ManufacturerSpecificCC, ManufacturerSpecificCCGet, TranslatedValueID, AlarmSensorValueMetadata, AlarmSensorCC } from "zwave-js";
 import { CommandClasses, InterviewStage, SecurityClass } from '@zwave-js/core';
 import { ActionAffordance, DataSchema, EventAffordance, PropertyAffordance, ThingTD } from "./thing";
 import { DataType, PropNameDeviceType, PropNameManufacturer, PropNameName, PropNameProduct, PropNameSoftwareVersion } from "./vocabulary";
-import { stringify } from "querystring";
 import type { ZWAPI } from "./zwapi";
-import { homedir } from "os";
-
-
 
 
 // map of commandclass to identification

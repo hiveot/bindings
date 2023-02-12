@@ -3,6 +3,7 @@ import type {
   ZWaveNodeValueNotificationArgs
 } from "zwave-js";
 import { getDeviceID, getPropName, parseNode } from "./parseNode";
+// import { DevicePubSubImpl } from "./pubsub";
 import type { ThingTD } from "./thing";
 import { ValueMap } from "./valueMap";
 import { ZWAPI } from "./zwapi";
@@ -17,6 +18,7 @@ export default class ZwaveBinding {
   lastValues = new Map<number, ValueMap>();
   // the last published values for each node by nodeID
   publishedValues = new Map<number, ValueMap>();
+  // pubsub = new DevicePubSubImpl();
 
   constructor() {
     // zwapi hides the zwave specific details
@@ -107,8 +109,9 @@ export default class ZwaveBinding {
   //
 
   // Starts and run the binding. This does not return until Stop is called.
-  async start() {
+  async start(address: string) {
     console.log("startup");
+    // this.pubsub.connect(address)
     await this.zwapi.connect();
   }
 
@@ -116,6 +119,7 @@ export default class ZwaveBinding {
   async stop() {
     console.log("Shutting Down...");
     await this.zwapi.disconnect();
+    // this.pubsub.disconnect()
     process.exit(0);
   }
 }
