@@ -19,7 +19,7 @@ import (
 	"github.com/hiveot/hub/pkg/gateway/capnpclient"
 	pubsubclient "github.com/hiveot/hub/pkg/pubsub/capnpclient"
 
-	"github.com/hiveot/bindings/zwavejs/cmd/wasm/jasm"
+	"github.com/hiveot/bindings/zwavejs/cmd/hapi/jasm"
 	wsockcap "zenhack.net/go/websocket-capnp/js"
 )
 

@@ -7,7 +7,7 @@ BINDINGS_HOME=$(INSTALL_HOME)/bin/bindings
 all: wasm js
 
 wasm: ## Compile go to wasm
-	GOOS=js GOARCH=wasm go build -o dist/main.wasm cmd/wasm/main.go
+	GOOS=js GOARCH=wasm go build -o dist/hapi.wasm cmd/hapi/main.go
 
 
 js:  ## Compile typescript to javascript

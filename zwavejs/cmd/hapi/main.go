@@ -5,9 +5,8 @@ package main
 import (
 	"fmt"
 	"syscall/js"
-	"time"
 
-	"github.com/hiveot/bindings/zwavejs/cmd/wasm/wsjs"
+	"github.com/hiveot/bindings/zwavejs/cmd/hapi/wsjs"
 )
 
 var wait = make(chan bool)
@@ -25,19 +24,17 @@ func Gomain() {
 	js.Global().Set("pubProperties", js.FuncOf(hapi.PubProperties))
 	js.Global().Set("subAction", js.FuncOf(hapi.SubAction))
 	js.Global().Set("gostop", js.FuncOf(Gostop))
-	time.Sleep(time.Millisecond * 100)
-
-	js.Global().Call("onGoStarted", "ready when you are")
+	//time.Sleep(time.Millisecond * 100)
 
 	// Prevent the program from exit
 	<-wait
-	fmt.Println("stopped")
+	fmt.Println("Gomain has stopped")
 }
 
 func Gostop(this js.Value, args []js.Value) any {
 	go func() {
 		wait <- true
-		fmt.Println("stopping")
+		fmt.Println("Stopping Gomain")
 	}()
 	return true
 }

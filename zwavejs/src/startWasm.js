@@ -38,11 +38,11 @@ const go = new globalThis.Go();
 go.env = Object.assign({ TMPDIR: os.tmpdir() }, process.env);
 go.exit = process.exit;
 
-export const loadWasm = async function (fileName) {
+export const startWasm = async function (fileName) {
     console.log("loading wasm file " + fileName)
     let wasmdata = fs.readFileSync(fileName)
 
-    WebAssembly.instantiate(wasmdata, go.importObject)
+    return WebAssembly.instantiate(wasmdata, go.importObject)
         .then((result) => {
             process.on("exit", (code) => { // Node.js exits if no event handler is pending
                 if (code === 0 && !go.exited) {
@@ -51,7 +51,7 @@ export const loadWasm = async function (fileName) {
                     go._resume();
                 }
             });
-            return go.run(result.instance);
+            go.run(result.instance);
         }).catch((err) => {
             console.error(err);
             process.exit(1);
