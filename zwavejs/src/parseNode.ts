@@ -1,8 +1,8 @@
 import { BinarySensorType, getEnumMemberName, MultilevelSwitchCommand, NodeStatus, ValueID, ValueType, ZWaveNode, ZWavePlusNodeType, ZWavePlusRoleType, ValueMetadataString, ValueMetadataNumeric, ValueMetadataBoolean, ValueMetadataAny, Driver, CommandClass, ConfigurationCC, BatteryReplacementStatus, ManufacturerSpecificCC, ManufacturerSpecificCCGet, TranslatedValueID, AlarmSensorValueMetadata, AlarmSensorCC } from "zwave-js";
 import { CommandClasses, InterviewStage, SecurityClass } from '@zwave-js/core';
-import { ActionAffordance, DataSchema, EventAffordance, PropertyAffordance, ThingTD } from "./thing";
-import { DataType, PropNameDeviceType, PropNameManufacturer, PropNameName, PropNameProduct, PropNameSoftwareVersion } from "./vocabulary";
-import type { ZWAPI } from "./zwapi";
+import { ActionAffordance, DataSchema, EventAffordance, PropertyAffordance, ThingTD } from "./thing.js";
+import { DataType, PropNameDeviceType, PropNameManufacturer, PropNameName, PropNameProduct, PropNameSoftwareVersion } from "./vocabulary.js";
+import type { ZWAPI } from "./zwapi.js";
 
 
 // map of commandclass to identification

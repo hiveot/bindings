@@ -1,7 +1,7 @@
 // Definition of the Thing's TD, Thing Description document
 // This consists of the TD itself with properties
 
-import { DataType } from "./vocabulary"
+import { DataType } from "./vocabulary.js"
 
 export class DataSchema extends Object {
     // Used to indicate input, output, attribute. See vocab.WoSTAtType

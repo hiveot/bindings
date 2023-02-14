@@ -2,44 +2,52 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-"use strict";
 
 // if (process.argv.length < 3) {
 //     console.error("usage: go_js_wasm_exec [wasm binary] [arguments]");
 //     process.exit(1);
 // }
 //
-const fs = require("fs")
+// const fs = require("fs")
+// const crypto = require("crypto");
 
-globalThis.require = require;
-globalThis.fs = require("fs");
-globalThis.TextEncoder = require("util").TextEncoder;
-globalThis.TextDecoder = require("util").TextDecoder;
+import fs from "fs"
+import crypto from "crypto"
+import util from "util"
+import os from "os"
 
-const crypto = require("crypto");
+// polyfills for running in nodejs
+// globalThis.require = require;  // 
+globalThis.fs = fs;
+globalThis.TextEncoder = util.TextEncoder;
+globalThis.TextDecoder = util.TextDecoder;
+
 globalThis.crypto = {
     getRandomValues(b) {
         crypto.randomFillSync(b);
     },
 };
 
-require("./wasm_exec");
+// import wasm_exec after setting globalThis. Use import function.
+await import("./wasm_exec.js")
 
-const go = new Go();
+const go = new globalThis.Go();
+
+
 // go.argv = process.argv.slice(2);
-go.env = Object.assign({ TMPDIR: require("os").tmpdir() }, process.env);
+go.env = Object.assign({ TMPDIR: os.tmpdir() }, process.env);
 go.exit = process.exit;
 
-globalThis.loadWasm = async function(fileName) {
-    console.log("loadin")
+export const loadWasm = async function (fileName) {
+    console.log("loading wasm file " + fileName)
     let wasmdata = fs.readFileSync(fileName)
 
-     WebAssembly.instantiate(wasmdata, go.importObject)
+    WebAssembly.instantiate(wasmdata, go.importObject)
         .then((result) => {
             process.on("exit", (code) => { // Node.js exits if no event handler is pending
                 if (code === 0 && !go.exited) {
                     // deadlock, make Go print error and stack traces
-                    go._pendingEvent = {id: 0};
+                    go._pendingEvent = { id: 0 };
                     go._resume();
                 }
             });

@@ -12,9 +12,10 @@ import (
 
 var wait = make(chan bool)
 
-// Main provides capnp pub/sub methods for use by javascript.
-func main() {
+// Gomain provides capnp pub/sub methods for use by javascript.
+func Gomain() {
 	// logrus.SetReportCaller(true)
+	println("Entering Gomain")
 	hapi := wsjs.NewHubAPI("zwavejs")
 	// Register the Go Gateway API for use by JS
 	js.Global().Set("connect", js.FuncOf(hapi.Connect))
@@ -23,18 +24,24 @@ func main() {
 	js.Global().Set("pubEvent", js.FuncOf(hapi.PubEvent))
 	js.Global().Set("pubProperties", js.FuncOf(hapi.PubProperties))
 	js.Global().Set("subAction", js.FuncOf(hapi.SubAction))
-	js.Global().Set("gostop", js.FuncOf(gostop))
+	js.Global().Set("gostop", js.FuncOf(Gostop))
 	time.Sleep(time.Millisecond * 100)
+
+	js.Global().Call("onGoStarted", "ready when you are")
 
 	// Prevent the program from exit
 	<-wait
 	fmt.Println("stopped")
 }
 
-func gostop(this js.Value, args []js.Value) any {
+func Gostop(this js.Value, args []js.Value) any {
 	go func() {
 		wait <- true
 		fmt.Println("stopping")
 	}()
 	return true
+}
+
+func main() {
+	Gomain()
 }

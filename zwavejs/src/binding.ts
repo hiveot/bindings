@@ -1,17 +1,19 @@
+
+
 import type {
   Driver, TranslatedValueID, ValueMetadataNumeric, ZWaveNode,
   ZWaveNodeValueNotificationArgs
 } from "zwave-js";
-import { getDeviceID, getPropName, parseNode } from "./parseNode";
+import { getDeviceID, getPropName, parseNode } from "./parseNode.js";
 // import { DevicePubSubImpl } from "./pubsub";
-import type { ThingTD } from "./thing";
-import { ValueMap } from "./valueMap";
-import { ZWAPI } from "./zwapi";
+import type { ThingTD } from "./thing.js";
+import { ValueMap } from "./valueMap.js";
+import { ZWAPI } from "./zwapi.js";
 
 // binding.ts holds the entry point to the zwave binding along with its configuration
 
 // ZWaveBinding maps ZWave nodes to Thing TDs and events, and handles actions to control node inputs.
-export default class ZwaveBinding {
+export class ZwaveBinding {
   id: string = "zwave";
   zwapi: ZWAPI;
   // the last received values for each node by nodeID

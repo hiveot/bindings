@@ -7,7 +7,7 @@ BINDINGS_HOME=$(INSTALL_HOME)/bin/bindings
 all: wasm js
 
 wasm: ## Compile go to wasm
-	GOOS=js GOARCH=wasm go build -o static/main.wasm cmd/wasm/main.go
+	GOOS=js GOARCH=wasm go build -o dist/main.wasm cmd/wasm/main.go
 
 
 js:  ## Compile typescript to javascript
@@ -24,8 +24,8 @@ install:  all ## Install the plugin into $(INSTALL_HOME)
 	mkdir -p $(BINDINGS_HOME)
 	cp $(DIST_FOLDER)/bin/* $(BINDINGS_HOME)
 
-run: wasm ## Run the app
-	node static/main.js
+run: wasm js ## Compile and run the app
+	node dist/main.js
 
 test: ## Run tests
 	GOOS=js GOARCH=wasm go test -failfast  -cover ./...

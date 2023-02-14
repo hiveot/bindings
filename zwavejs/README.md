@@ -2,12 +2,15 @@
 
 This binding connects to a ZWave USB-Stick controller and publishes TD and events to the HiveOT message bus.
 
+The objective is that this runs out of the box.
+
+
 ## Status
 
 This binding is in development:
 - The implementation of ZWave portion using the zwave-js library is largely complete.
 - The capnp RPC library for nodejs is too finicky to use and doesn't run out of the box. This approach is shelved. 
-- Connection with the hiveot pubsub will be implemented using the http gateway instead.
+- Connection with the hub pubsub will be implemented using go-capnp via wasm and websockets.
 
 
 
@@ -25,5 +28,3 @@ To run this binding this needs:
 1. Nodejs to run the service
 2. Client certificate generated using the Hub CLI
 
-
-The objective is that this runs out of the box using nodejs.

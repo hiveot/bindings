@@ -4,7 +4,9 @@
     "description": "HiveOT Zwave binding using zwave-js",
     "license": "MIT",
     "main": "src/main.ts",
+    "type": "module",
     "scripts": {
+        "wasm": "GOOS=js GOARCH=wasm go build -o dist/main.wasm cmd/wasm/main.go",
         "start": "tsc && node dist/main.js",
         "run": "node static/main.js",
         "version": "node --version"
@@ -17,7 +19,9 @@
         "zwave-js": "^10.4.0"
     },
     "devDependencies": {
+        "@types/golang-wasm-exec": "^1.15.0",
         "@types/md5": "^2.3.2",
-        "@types/node": "^18.11.18"
+        "@types/node": "^18.11.18",
+        "@types/ws": "^8.5.4"
     }
 }

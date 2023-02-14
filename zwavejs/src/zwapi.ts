@@ -24,8 +24,8 @@ import md5 from "md5";
 import type { ConfigManager } from "@zwave-js/config";
 import type { CommandClasses } from "@zwave-js/core";
 import type { ReadonlyThrowingMap } from "@zwave-js/shared";
-import { ValueMap } from "./valueMap";
-import { getDeviceID } from "./parseNode";
+import { ValueMap } from "./valueMap.js";
+import { getDeviceID } from "./parseNode.js";
 import { stringify } from "querystring";
 const DefaultNetworkPassword = "My name is groot";
 

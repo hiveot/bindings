@@ -1,41 +1,42 @@
 {
+    // typescript should generate JS files that support nodejs type loading 
     "compilerOptions": {
-        "allowJs": false,
+        "allowJs": true,
         "baseUrl": ".",
         "declaration": true,
-		"esModuleInterop": true,
+        "declarationMap": true,
+        "esModuleInterop": true,
         "isolatedModules": true,
         "importsNotUsedAsValues": "error", // Avoid runtime imports that are unnecessary
-		"inlineSourceMap": false,
-        
-        "module": "commonjs",
+        "inlineSourceMap": false,
+        "module": "ESNext",
         "moduleResolution": "node",
         "noImplicitAny": true,
         "noImplicitThis": true,
-
         "outDir": "./dist",
-        "preserveSymlinks": true,                       /* Necessary to support yarn portals with the node-modules linker, used by yarn link (berry) */
-		"pretty": true,
+        "preserveSymlinks": true, /* Necessary to support yarn portals with the node-modules linker, used by yarn link (berry) */
+        "pretty": true,
         "resolveJsonModule": true,
-
         "rootDir": "src",
         "skipLibCheck": true,
         "sourceMap": true,
         "strict": true,
-        "target": "ES2018",  // match zwavejs
-        "types":["node"],
-        
+        "target": "ES2018", // match zwavejs?
+        // "types":["node"],
         // watch=true breaks CI build steps
-		"watch": false,
-	},
-    "lib": ["ES2015"],
-	"include": [
-		"src/**/*.ts",
-		"src/**/*.d.ts"
-	],
-	"exclude": [
-		"dist/**",
-		"node_modules/**",
-		"admin/**"
-	]
+        "watch": false,
+    },
+    "lib": [
+        "ES2015"
+    ],
+    "include": [
+        "src/**/*.ts",
+        "src/**/*.d.ts",
+        "src/loadwasm.ts.not"
+    ],
+    "exclude": [
+        "dist/**",
+        "node_modules/**",
+        "admin/**"
+    ]
 }

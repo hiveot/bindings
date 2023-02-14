@@ -2,8 +2,8 @@ import { ConfigManager } from "@zwave-js/config";
 import { cp } from "fs";
 import { BinarySensorType, getEnumMemberName, MultilevelSwitchCommand, NodeStatus, ValueID, ValueType, ZWaveNode, ZWavePlusNodeType, ZWavePlusRoleType, ValueMetadataString, ValueMetadataNumeric, ValueMetadataBoolean, ValueMetadataAny, Driver, CommandClass, ConfigurationCC, BatteryReplacementStatus, ManufacturerSpecificCC, ManufacturerSpecificCCGet } from "zwave-js";
 import { CommandClasses, InterviewStage, SecurityClass } from '@zwave-js/core';
-import { ThingTD } from "./thing";
-import { DataType, PropNameDeviceType, PropNameManufacturer, PropNameName, PropNameProduct, PropNameSoftwareVersion } from "./vocabulary";
+import { ThingTD } from "./thing.js";
+import { DataType, PropNameDeviceType, PropNameManufacturer, PropNameName, PropNameProduct, PropNameSoftwareVersion } from "./vocabulary.js";
 import { stringify } from "querystring";
 import { json } from "stream/consumers";
 
