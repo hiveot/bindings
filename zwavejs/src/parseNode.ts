@@ -86,11 +86,11 @@ function addEvent(td: ThingTD, node: ZWaveNode, vid: TranslatedValueID, name: st
 }
 
 
-// The device ID used in publishing the node's TD
-export function getDeviceID(homeID: string, node: ZWaveNode): string {
-    let deviceID = homeID + "." + node.id.toString();
-    return deviceID
-}
+// // The device ID used in publishing the node's TD
+// export function getDeviceID(homeID: string, node: ZWaveNode): string {
+//     let deviceID = homeID + "." + node.id.toString();
+//     return deviceID
+// }
 
 // Determine the device type of the node in the HiveOT vocabulary
 // TODO: convert to device type vocabulary
@@ -166,7 +166,7 @@ export function parseNode(zwapi: ZWAPI, node: ZWaveNode): ThingTD {
     let td: ThingTD;
 
     //--- Step 1: TD definition
-    let deviceID = getDeviceID(zwapi.homeID, node)
+    let deviceID = zwapi.getDeviceID(node.id)
     // TODO: determine deviceType based on generic/specific CC name
     let deviceType = getDeviceType(node)
     let title = node.name ? node.name : "";

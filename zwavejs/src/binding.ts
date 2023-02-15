@@ -4,7 +4,8 @@ import type {
   Driver, TranslatedValueID, ValueMetadataNumeric, ZWaveNode,
   ZWaveNodeValueNotificationArgs
 } from "zwave-js";
-import { getDeviceID, getPropName, parseNode } from "./parseNode.js";
+import type { HubAPI } from "./hubapi.js";
+import { getPropName, parseNode } from "./parseNode.js";
 // import { DevicePubSubImpl } from "./pubsub";
 import type { ThingTD } from "./thing.js";
 import { ValueMap } from "./valueMap.js";
@@ -15,6 +16,7 @@ import { ZWAPI } from "./zwapi.js";
 // ZWaveBinding maps ZWave nodes to Thing TDs and events, and handles actions to control node inputs.
 export class ZwaveBinding {
   id: string = "zwave";
+  hapi: HubAPI;
   zwapi: ZWAPI;
   // the last received values for each node by nodeID
   lastValues = new Map<number, ValueMap>();
@@ -22,7 +24,8 @@ export class ZwaveBinding {
   publishedValues = new Map<number, ValueMap>();
   // pubsub = new DevicePubSubImpl();
 
-  constructor() {
+  constructor(hapi: HubAPI) {
+    this.hapi = hapi;
     // zwapi hides the zwave specific details
     // TODO: Load binding config
     // TODO: create TD for binding instance and for the controller
@@ -92,6 +95,8 @@ export class ZwaveBinding {
   // Publish event
   publishEvent(nodeID: number, eventName: string, eventDoc: any) {
     let evJSON = JSON.stringify(eventDoc, null, " ")
+    let thingID = this.zwapi.getDeviceID(nodeID)
+    this.hapi.pubEvent(thingID, eventName, evJSON)
     console.info(`* Publishing event ${eventName} for node ${nodeID}: ${evJSON}`)
   }
 
@@ -105,7 +110,9 @@ export class ZwaveBinding {
   // publish a TD document
   publishTD(nodeID: number, td: ThingTD) {
     let tdJSON = JSON.stringify(td, null, " ")
-    console.log("publishTD: nodeID=", nodeID, ":", tdJSON)
+    let thingID = this.zwapi.getDeviceID(nodeID)
+    this.hapi.pubTD(thingID, td["@type"], tdJSON)
+    console.log("publishTD: nodeID=", nodeID)
   }
 
   //

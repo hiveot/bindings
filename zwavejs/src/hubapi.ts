@@ -1,4 +1,5 @@
-const wasmPath = "./dist/hapi.wasm"
+// FIXME: use app bin directory
+const wasmPath = "./build/hapi.wasm"
 
 // CAREFUL! import ws as module first. (for use by wasm)
 // Not this way: (global).WebSocket = import("ws");
@@ -14,6 +15,7 @@ import * as lw from "./startWasm.js";
 
 // HubAPI is a convenience typescript wrapper around the golang wasm Hub connection API
 export class HubAPI {
+    isConnected: boolean = false;
     constructor() {
 
     }
@@ -31,17 +33,24 @@ export class HubAPI {
     // @param keyPem: client key in PEM format
     // @param caCertPem: server CA certificate in PEM format
     async connect(url: string, certPem: string, keyPem: string, caCertPem: string) {
-        return global.connect(url, certPem, keyPem, caCertPem)
+        await global.connect(url, certPem, keyPem, caCertPem)
+        this.isConnected = true
     }
 
     // Publish a JSON encoded TD document
     async pubTD(thingID: string, deviceType: string, tdJSON: string) {
-        return global.pubTD(thingID, deviceType, tdJSON)
+        if (this.isConnected) {
+            return global.pubTD(thingID, deviceType, tdJSON)
+        }
+        return
     }
 
     // Publish a JSON encoded thing event
     async pubEvent(thingID: string, eventName: string, evJSON: string) {
-        return global.pubEvent(thingID, eventName, evJSON)
+        if (this.isConnected) {
+            return global.pubEvent(thingID, eventName, evJSON)
+        }
+        return
     }
 
     // Disconnect from the gateway

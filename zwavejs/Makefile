@@ -1,5 +1,6 @@
 # Makefile to build the zwave protocol binding
 DIST_FOLDER=./dist
+BUILD_FOLDER=./build
 INSTALL_HOME=~/bin/hiveot
 BINDINGS_HOME=$(INSTALL_HOME)/bin/bindings
 .DEFAULT_GOAL := help
@@ -7,7 +8,7 @@ BINDINGS_HOME=$(INSTALL_HOME)/bin/bindings
 all: wasm js
 
 wasm: ## Compile go to wasm
-	GOOS=js GOARCH=wasm go build -o dist/hapi.wasm cmd/hapi/main.go
+	GOOS=js GOARCH=wasm go build -o ${BUILD_FOLDER}/hapi.wasm cmd/hapi/main.go
 
 
 js:  ## Compile typescript to javascript
@@ -25,7 +26,7 @@ install:  all ## Install the plugin into $(INSTALL_HOME)
 	cp $(DIST_FOLDER)/bin/* $(BINDINGS_HOME)
 
 run: wasm js ## Compile and run the app
-	node dist/main.js
+	node ${BUILD_FOLDER}/main.js  ~/bin/hiveot/certs
 
 test: ## Run tests
 	GOOS=js GOARCH=wasm go test -failfast  -cover ./...

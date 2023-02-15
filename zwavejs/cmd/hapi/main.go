@@ -3,7 +3,6 @@
 package main
 
 import (
-	"fmt"
 	"syscall/js"
 
 	"github.com/hiveot/bindings/zwavejs/cmd/hapi/wsjs"
@@ -28,13 +27,13 @@ func Gomain() {
 
 	// Prevent the program from exit
 	<-wait
-	fmt.Println("Gomain has stopped")
+	println("Gomain has stopped")
 }
 
 func Gostop(this js.Value, args []js.Value) any {
 	go func() {
 		wait <- true
-		fmt.Println("Stopping Gomain")
+		println("Stopping Gomain")
 	}()
 	return true
 }

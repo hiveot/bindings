@@ -31,6 +31,7 @@ packages/*/cache
 
 # Compiled source files
 **/build
+**/dist
 **/*.tsbuildinfo
 *.map
 

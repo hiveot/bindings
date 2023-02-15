@@ -1,15 +1,38 @@
 #!/usr/bin/env node
 import "./hubapi.js";
+import path from "path";
+import { HubAPI } from "./hubapi.js";
 
-const certsDir = "/home/henk/bin/hiveot/certs/"
-const gwURL = "wss://127.0.0.1:8444"
+// commandline args: main certsDir gwURL
+const defaultCertsDir = "./certs/"
+const defaultURL = "wss://127.0.0.1:8444"
+
+let appPath = ""
+let appDir = ""
+let certsDir = defaultCertsDir
+let gwURL = defaultURL
+
+
+if (process.argv.length > 1) {
+  appPath = process.argv[1]
+  appDir = path.dirname(appPath)
+  certsDir = path.join(appDir, defaultCertsDir)
+}
+if (process.argv.length > 2) {
+  certsDir = process.argv[2]
+}
+if (process.argv.length > 3) {
+  gwURL = process.argv[3]
+}
+
+console.log("binding startup. certsDir=" + certsDir + ", connecting to: ", gwURL)
 
 
 function loadCerts(certsDir: string): [clientCertPem: string, clientKeyPem: string, caCertPem: string] {
 
-  let clientCertFile = certsDir + "zwavejsCert.pem"
-  let clientKeyFile = certsDir + "zwavejsKey.pem"
-  let caCertFile = certsDir + "caCert.pem"
+  let clientCertFile = certsDir + "/zwavejsCert.pem"
+  let clientKeyFile = certsDir + "/zwavejsKey.pem"
+  let caCertFile = certsDir + "/caCert.pem"
 
   let clientCertPem = fs.readFileSync(clientCertFile)
   let clientKeyPem = fs.readFileSync(clientKeyFile)
@@ -26,19 +49,13 @@ await hapi.initialize()
 let [clientCertPem, clientKeyPem, caCertPem] = loadCerts(certsDir)
 await hapi.connect(gwURL, clientCertPem, clientKeyPem, caCertPem)
 
-
-//--- Step 2: test publications
-hapi.pubTD("thingID1", "deviceType1", '{"id":"thing1","@type":"devicetype1"}')
-hapi.pubEvent("thingID1", "eventName", '25');
-
-
-//--- Step 3: Start the zwave-js binding  
+//--- Step 2: Start the zwave-js binding  
 
 import { ZwaveBinding } from "./binding.js"
 import * as fs from "fs";
-import { HubAPI } from "./hubapi.js";
-let binding = new ZwaveBinding();
-// binding.start("localhost:57575");
+import { exit } from "process";
+let binding = new ZwaveBinding(hapi);
+binding.start("localhost:57575");
 
 
 // When the application gets a SIGINT or SIGTERM signal
@@ -46,7 +63,9 @@ let binding = new ZwaveBinding();
 console.log("Ready. Waiting for signal to terminate")
 for (const signal of ["SIGINT", "SIGTERM"]) {
   process.on(signal, async () => {
+    gostop();
     binding.stop();
+    exit(0);
   });
 }
 

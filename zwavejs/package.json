@@ -1,15 +1,26 @@
 {
     "name": "zwavebinding",
-    "version": "0.0.1",
+    "version": "0.1-alpha",
     "description": "HiveOT Zwave binding using zwave-js",
     "license": "MIT",
-    "main": "src/main.ts",
+    "main": "build/main.js",
     "type": "module",
+    "types": "src/global.d.ts",
     "scripts": {
-        "wasm": "GOOS=js GOARCH=wasm go build -o dist/main.wasm cmd/wasm/main.go",
-        "start": "tsc && node dist/main.js",
-        "run": "node static/main.js",
+        "build": "tsc && pkg -c package.json ./build/main.js -o dist/zwavejs-binding",
+        "wasm": "GOOS=js GOARCH=wasm go build -o build/hapi.wasm cmd/hapi/main.go",
+        "dev": "tsc && node build/main.js ~/bin/hiveot/certs",
         "version": "node --version"
+    },
+    "bin": "src/main.ts",
+    "pkg": {
+        "assets": [
+            "build/*"
+        ],
+        "targets": [
+            "linux"
+        ],
+        "outputPath": "dist"
     },
     "dependencies": {
         "@zwave-js/config": "^10.4.0",
@@ -22,6 +33,9 @@
         "@types/golang-wasm-exec": "^1.15.0",
         "@types/md5": "^2.3.2",
         "@types/node": "^18.11.18",
-        "@types/ws": "^8.5.4"
-    }
+        "@types/ws": "^8.5.4",
+        "pkg": "^5.8.0"
+    },
+    "readme": "readme - todo",
+    "_id": "zwavejs-binding"
 }

@@ -25,7 +25,6 @@ import type { ConfigManager } from "@zwave-js/config";
 import type { CommandClasses } from "@zwave-js/core";
 import type { ReadonlyThrowingMap } from "@zwave-js/shared";
 import { ValueMap } from "./valueMap.js";
-import { getDeviceID } from "./parseNode.js";
 import { stringify } from "querystring";
 const DefaultNetworkPassword = "My name is groot";
 
@@ -105,7 +104,9 @@ export class ZWAPI {
 
   // disconnect from the ZWave controller
   async disconnect() {
-    await this.driver.destroy();
+    if (this.driver) {
+      await this.driver.destroy();
+    }
   }
 
   // // return the deviceID for the given Node
@@ -119,6 +120,12 @@ export class ZWAPI {
     let hid = this.driver.controller.homeId;
     let homeIDStr = hid?.toString(16).toUpperCase() || "n/a"
     return homeIDStr
+  }
+
+  // Create the unique device ID for publishing
+  getDeviceID(nodeID: number): string {
+    let deviceID = this.homeID + "." + nodeID.toString();
+    return deviceID
   }
 
   // return the node for the given ID
