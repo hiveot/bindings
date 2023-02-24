@@ -1,0 +1,89 @@
+# ZWaveJS binding with mapping of ValueID to TD property, event or action
+
+# VID mapping is based on CC and further filtered by propertyName
+
+VID:
+  *:   # default any CC
+    *:    # default any VID
+      - ignore: false           # default: do not ignore
+      - isAction: false         # default: not an action
+      - isEvent: false          # default: not an event
+      - isProperty: true        # default: treat as a property
+      - isConfig: {writable}    # default: writable properties are configuration
+      - type: {propertyName}    # default: use property name as type (subject to rename)
+
+  basic:
+    currentValue:
+      - rename: "value"         # rename property 'currentValue' to 'value'
+      - isEvent: true
+    targetValue:
+      - ignore: true
+
+  barrier operator:
+    *:
+      - isAction: {writable}
+
+  # battery CC properties are events
+  battery:
+    *:
+      - isEvent: true
+
+  binary switch:
+    Any:
+      - rename: "switch"          # rename property 'Any' to 'value' and send as event
+      - isAction: {writable}
+
+  binary sensor:
+    Any:
+      - rename: "value"          # rename property 'Any' to 'value' and send as event
+      - isEvent: true
+
+  central scene:
+    *:
+      - rename: "scene {propertyKey}"
+      - isEvent: true
+
+  color switch:
+    *:
+      - rename: "color"          # rename property 'Any' to 'value' and send as event
+      - isAction: {writable}
+
+  configuration:
+    *:
+      - isConfig: true
+
+  manufacturer specification:
+    *:
+      - isEvent: false
+      - isProperty: true
+
+  meter:
+    *:
+      - isEvent: true          # send all meter updates as event
+
+  notification:
+    *:
+      - isEvent: true
+
+  switch binary:
+    *:
+      - isAction: {writable}
+      - isEvent: true
+
+  switch multilevel:
+    *:
+      - isAction: {writable}
+      - isEvent: true
+
+  thermostat setPoint:
+    *:
+      - isConfig: {writable}
+
+  version:
+    *:
+      - isEvent: true
+    firmwareVersions:
+      - rename: "firmwareVersion"
+      - isEvent: false
+
+

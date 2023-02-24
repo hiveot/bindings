@@ -1,11 +1,11 @@
 import { ConfigManager } from "@zwave-js/config";
 import { cp } from "fs";
-import { BinarySensorType, getEnumMemberName, MultilevelSwitchCommand, NodeStatus, ValueID, ValueType, ZWaveNode, ZWavePlusNodeType, ZWavePlusRoleType, ValueMetadataString, ValueMetadataNumeric, ValueMetadataBoolean, ValueMetadataAny, Driver, CommandClass, ConfigurationCC, BatteryReplacementStatus, ManufacturerSpecificCC, ManufacturerSpecificCCGet } from "zwave-js";
+import {
+    getEnumMemberName, NodeStatus,
+    ZWaveNode, ZWavePlusNodeType, ZWavePlusRoleType,
+} from "zwave-js";
 import { CommandClasses, InterviewStage, SecurityClass } from '@zwave-js/core';
-import { ThingTD } from "./thing.js";
-import { DataType, PropNameDeviceType, PropNameManufacturer, PropNameName, PropNameProduct, PropNameSoftwareVersion } from "./vocabulary.js";
-import { stringify } from "querystring";
-import { json } from "stream/consumers";
+import {VocabManufacturer} from "../lib/vocabulary.js";
 
 
 
@@ -71,7 +71,7 @@ export class ValueMap extends Map<string, any> {
         this.setIf("keepAwake", node.keepAwake);
         this.setIf("label", node.deviceConfig?.label)
         this.setIf("manufacturerId", node.manufacturerId);
-        this.setIf(PropNameManufacturer, node.deviceConfig?.manufacturer);
+        this.setIf(VocabManufacturer, node.deviceConfig?.manufacturer);
 
         this.setIf("maxDataRate", node.maxDataRate)
         if (node.nodeType) {

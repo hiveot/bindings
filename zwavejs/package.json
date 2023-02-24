@@ -3,13 +3,14 @@
     "version": "0.1-alpha",
     "description": "HiveOT Zwave binding using zwave-js",
     "license": "MIT",
-    "main": "build/main.js",
+    "main": "build/binding/main.js",
     "type": "module",
-    "types": "src/global.d.ts",
+    "types": "src/binding/global.d.ts",
     "scripts": {
-        "build": "tsc && pkg -c package.json ./build/main.js -o dist/zwavejs-binding",
+        "dist": "tsc && pkg -c package.json ./build/main.js -o dist/zwavejs-binding",
+        "build": "tsc",
         "wasm": "GOOS=js GOARCH=wasm go build -o build/hapi.wasm cmd/hapi/main.go",
-        "dev": "tsc && node build/main.js ~/bin/hiveot/certs",
+        "dev": "tsc && TS_NODE_BASEURL=./build node build/binding/main.js ~/bin/hiveot/certs",
         "version": "node --version"
     },
     "bin": "src/main.ts",

@@ -1,48 +1,52 @@
 import {
-  AlarmSensorCC,
-  CommandClass,
-  Driver,
+  Driver, HealNodeStatus,
   InclusionResult,
   NodeStatistics,
   NodeStatus,
   TranslatedValueID,
-  ValueMetadata,
-  ValueMetadataNumeric,
-  ValueMetadataString,
   ZWaveNode,
   ZWaveNodeMetadataUpdatedArgs,
   ZWaveNodeValueAddedArgs,
   ZWaveNodeValueNotificationArgs,
-  ZWaveNodeValueNotificationCallback,
   ZWaveNodeValueRemovedArgs,
   ZWaveNodeValueUpdatedArgs,
-  ZWaveNotificationCallback,
-  ZWaveNotificationCallbackArgs_NotificationCC,
-  ZWaveOptions,
 } from "zwave-js";
 import md5 from "md5";
-import type { ConfigManager } from "@zwave-js/config";
-import type { CommandClasses } from "@zwave-js/core";
-import type { ReadonlyThrowingMap } from "@zwave-js/shared";
-import { ValueMap } from "./valueMap.js";
-import { stringify } from "querystring";
 const DefaultNetworkPassword = "My name is groot";
 
 // ZWAPI is a wrapper around zwave-js for use by the HiveOT binding.
 // Its primary purpose is to hide the ZWave specific logic from the binding; offer a simple API to
 // obtain the data for publishing the node TDs and events; and accept actions for devices.
-// To do so it transforms zwave vocabulary to HiveOT vocabulary.
+// To do so it transforms ZWave vocabulary to HiveOT vocabulary.
 export class ZWAPI {
   // driver initializes on connect
   driver!: Driver;
+
+  // callback to notify of a change in node state
+  onStateUpdate: (node: ZWaveNode, newState: string) => void;
+
+  // callback to notify of a change in node VID or metadata
   onNodeUpdate: (node: ZWaveNode) => void;
+
+  // callback to notify of a change in VID value
   onValueUpdate: (node: ZWaveNode, v: TranslatedValueID, newValue: any) => void;
+
   // discovered nodes
   nodes: Map<string, ZWaveNode>;
 
+  firmwareUpdateState: string|undefined = undefined;
+  healNetworkState: string|undefined = undefined;
+  inclusionState: string|undefined = undefined;
+
   constructor(
+      // handler for node VID or Metadata updates
     onNodeUpdate: (node: ZWaveNode) => void,
-    onValueUpdate: (node: ZWaveNode, v: TranslatedValueID, newValue: any) => void) {
+      // handler for node property value updates
+    onValueUpdate: (node: ZWaveNode, v: TranslatedValueID, newValue: any) => void,
+    // handler for node state updates
+    onStateUpdate: (node: ZWaveNode, newState: string) => void) {
+
+    this.onStateUpdate = onStateUpdate;
     this.onNodeUpdate = onNodeUpdate;
     this.onValueUpdate = onValueUpdate;
     this.nodes = new Map<string, ZWaveNode>();
@@ -58,7 +62,7 @@ export class ZWAPI {
   // @param onReady
   // @param onNodeUpdate
   async connect() {
-    // TODO: these security keys are manually generated. They should be obtained from config
+    // FIXME: these security keys are manually generated. They should be obtained from config
     // or generated at a new install.
     let legacyKey = md5(DefaultNetworkPassword);
     let options = {
@@ -94,10 +98,14 @@ export class ZWAPI {
     this.driver = new Driver("/dev/ttyACM0", options);
 
     // You must add a handler for the error event before starting the driver
-    this.driver.on("error", (e) => this.handleDriverError(e));
+    this.driver.on("error", (e) => {
+      this.handleDriverError(e);
+    });
 
     // Listen for the driver ready event before doing anything with the driver
-    this.driver.once("driver ready", () => this.handleDriverReady());
+    this.driver.once("driver ready", () => {
+      this.handleDriverReady()
+    });
 
     await this.driver.start();
   }
@@ -124,7 +132,7 @@ export class ZWAPI {
 
   // Create the unique device ID for publishing
   getDeviceID(nodeID: number): string {
-    let deviceID = this.homeID + "." + nodeID.toString();
+    let deviceID: string = this.homeID + "." + nodeID.toString();
     return deviceID
   }
 
@@ -135,9 +143,9 @@ export class ZWAPI {
   }
 
   // return the map of discovered ZWave nodes
-  getNodes(): ReadonlyThrowingMap<number, ZWaveNode> {
-    return this.driver.controller.nodes
-  }
+  // getNodes(): ReadonlyThrowingMap<number, ZWaveNode> {
+  //   return this.driver.controller.nodes
+  // }
 
 
   // Driver reports and error
@@ -168,12 +176,42 @@ export class ZWAPI {
       this.addNode(node);
     });
 
+    // controller emitted events
+    this.driver.controller.on("exclusion failed",() => {
+      console.info("exclusion has failed");
+    });
+    this.driver.controller.on("exclusion started",() => {
+      console.info("exclusion has started");
+    });
+    this.driver.controller.on("exclusion stopped",() => {
+      console.info("exclusion has stopped");
+    });
+
+    this.driver.controller.on("heal network progress",
+        (progress: ReadonlyMap<number, HealNodeStatus>) => {
+      console.info("heal network progress:", progress);
+    });
+    this.driver.controller.on("heal network done",() => {
+      console.info("heal network done");
+    });
+
+    this.driver.controller.on("inclusion failed",() => {
+      console.info("inclusion has failed");
+    });
+    this.driver.controller.on("inclusion started",(secure: boolean) => {
+      console.info("inclusion has started. secure=%v", secure);
+    });
+    this.driver.controller.on("inclusion stopped",() => {
+      console.info("inclusion has stopped");
+    });
+
     this.driver.controller.on("node added", (node: ZWaveNode, result: InclusionResult) => {
-      console.info("new node added: id: ", node.id, ", productID:", node.productId, " config: ", node.deviceConfig);
+      result.lowSecurity
+      console.info(`new node added: nodeId=${node.id} lowSecurity=${result.lowSecurity}`)
       this.setupNode(node);
     });
     this.driver.controller.on("node removed", (node: ZWaveNode, replaced: boolean) => {
-      console.info("node removed: id: ", node.id);
+      console.info(`node removed: id=${node.id}, replaced=${replaced}`);
     });
 
   }
@@ -193,87 +231,79 @@ export class ZWAPI {
     // first time publish node TD and value map
     this.onNodeUpdate?.(node);
 
-    node.on("alive", this.handleNodeAlive.bind(this));
-    node.on("dead", this.handleNodeDead.bind(this));
-    node.on("interview started", this.handleNodeInterviewStarted.bind(this));
-    node.on("interview completed", this.handleNodeInterviewCompleted.bind(this));
-    node.on("interview failed", this.handleNodeInterviewFailed.bind(this));
-    node.on("metadata updated", this.handleNodeMetadataUpdated.bind(this));
-    node.on("notification", (node, cc, args) => this.handleNodeNotification.bind(this)(node, cc, args));
-    // node.on("ready", this.handleNodeReady.bind(this))
-    node.on("sleep", this.handleNodeSleep.bind(this));
-    node.on("statistics updated", this.handleNodeStatisticsUpdated.bind(this));
-    node.on("value added", this.handleValueAdded.bind(this));
-    // node.on("value notification", (node, args) => this.handleValueNotification(node, args));
-    node.on("value notification", this.handleValueNotification.bind(this));
-    node.on("value removed", this.handleValueRemoved.bind(this));
-    node.on("value updated", this.handleValueUpdated.bind(this));
-    node.on("wake up", this.handleNodeWakeUp.bind(this));
+    node.on("alive", (node: ZWaveNode, oldStatus: NodeStatus)=>{
+      console.info(`Node ${node.id}: is alive`);
+      if (node.status != oldStatus) {
+        this.onStateUpdate(node, "alive")
+      }
+    });
+    node.on("dead", (node: ZWaveNode, oldStatus: NodeStatus)=>{
+      console.info(`Node ${node.id}: is dead`);
+      if (node.status != oldStatus) {
+        this.onStateUpdate(node, "dead")
+      }
+    });
 
-    //
+    node.on("interview completed", (node: ZWaveNode)=> {
+      console.info(`Node ${node.id}: interview completed`);
+      // event
+      this.onStateUpdate(node, "interview completed")
+    });
+    node.on("interview failed", (node: ZWaveNode)=> {
+      console.info(`Node ${node.id}: interview failed`);
+      this.onStateUpdate(node, "interview failed")
+    });
+    node.on("interview started", (node: ZWaveNode)=> {
+      console.info(`Node ${node.id}: interview started`);
+      this.onStateUpdate(node, "interview started")
+    });
 
-  }
-  handleNodeAlive(node: ZWaveNode, oldStatus: NodeStatus) {
-    console.info(`Node ${node.id}: is alive`);
-  }
-  handleNodeDead(node: ZWaveNode, oldStatus: NodeStatus) {
-    console.info(`Node ${node.id}: is dead`);
-  }
-  handleNodeInterviewCompleted(node: ZWaveNode) {
-    console.info(`Node ${node.id}: interview completed`);
-    this._updateNodeStatus(node);
-  }
-  handleNodeInterviewFailed(node: ZWaveNode) {
-    console.error(`Node ${node.id}: interview failed`);
-    this._updateNodeStatus(node);
-  }
-  handleNodeInterviewStarted(node: ZWaveNode) {
-    console.info(`Node ${node.id}: interview started`);
-    this._updateNodeStatus(node);
-  }
-  handleNodeMetadataUpdated(node: ZWaveNode, args: ZWaveNodeMetadataUpdatedArgs) {
-    // isnt this a value update? No
-    let val = node.getValue(args)
-    console.info(`Node ${node.id} value metadata updated for ${args.propertyName}: ${val}`);
-    // this._handleNodeValueUpdate(node, args, args.metadata)
-  }
-  // Docs: This event serves a similar purpose as the "value notification", 
-  // but is used for more complex CC-specific notifications. 
-  // handleNodeNotification: ZWaveNotificationCallback = () => {
-  handleNodeNotification(node: ZWaveNode,
-    cc: CommandClasses,
-    // args: ZWaveNotificationCallbackArgs_NotificationCC) {
-    args: any) {
+    node.on("metadata updated", (node: ZWaveNode, args: ZWaveNodeMetadataUpdatedArgs) => {
+      // this updates the whole TD. Hopefully it doesn't happen too often.
+      this.onNodeUpdate(node)
+      console.info(`Node ${node.id} value metadata updated. ${args.metadata}`);
+    });
 
-    console.info(`Node ${node.id} Notification: CC=${cc}, args=${args}`)
-    // TODO: what/when is this notification providing?
-  }
+    node.on("notification", (node, cc, args) => {
+      console.info(`Node ${node.id} Notification: CC=${cc}, args=${args}`)
+      // TODO: what/when is this notification providing?
+    });
 
-  handleNodeSleep(node: ZWaveNode) {
-    console.info(`Node ${node.id}: is sleeping`);
-    this._updateNodeStatus(node);
-  }
-  handleNodeWakeUp(node: ZWaveNode) {
-    console.info(`Node ${node.id}: is awake`);
-    this._updateNodeStatus(node);
-  }
-  handleValueAdded(node: ZWaveNode, args: ZWaveNodeValueAddedArgs) {
-    // console.info("Node ", node.id, " value added for ", args.propertyName, ": ", args.newValue);
-    this.onValueUpdate(node, args, args.newValue)
-  }
-  handleValueNotification(node: ZWaveNode, vid: ZWaveNodeValueNotificationArgs) {
-    this.onValueUpdate(node, vid, vid.value)
-  }
-  handleValueRemoved(node: ZWaveNode, args: ZWaveNodeValueRemovedArgs) {
-    console.info("Node ", node.id, " value removed for ", args.propertyName, ":", args.prevValue);
-  }
-  handleValueUpdated(node: ZWaveNode, args: ZWaveNodeValueUpdatedArgs) {
-    this.onValueUpdate(node, args, args.newValue)
-  }
-  handleNodeStatisticsUpdated(node: ZWaveNode, args: NodeStatistics) {
-    console.info("Node ", node.id, " stats updated: args=", args);
+    node.on("sleep", (node: ZWaveNode)=> {
+      console.info(`Node ${node.id}: is sleeping`);
+      this.onStateUpdate(node, "sleeping")
+    });
+
+    node.on("statistics updated", (node: ZWaveNode, args: NodeStatistics) => {
+      // console.info("Node ", node.id, " stats updated: args=", args);
+    });
+
+    node.on("value added", (node: ZWaveNode, args: ZWaveNodeValueAddedArgs) => {
+      this.onValueUpdate(node, args, args.newValue)
+    });
+
+    node.on("value notification", (node: ZWaveNode, vid: ZWaveNodeValueNotificationArgs) => {
+      this.onValueUpdate(node, vid, vid.value)
+    });
+
+    node.on("value removed", (node: ZWaveNode, args: ZWaveNodeValueRemovedArgs) => {
+      console.info("Node ", node.id, " value removed for ", args.propertyName, ":", args.prevValue);
+      this.onValueUpdate(node, args, undefined)
+    });
+
+    node.on("value updated", (node: ZWaveNode, args: ZWaveNodeValueUpdatedArgs) => {
+      let vidMeta = node.getValueMetadata(args)
+      console.info("Node ", node.id, " value updated: args=", args,"vidMeta=",vidMeta);
+      this.onValueUpdate(node, args, args.newValue)
+    });
+
+    node.on("wake up", (node: ZWaveNode)=> {
+      console.info(`Node ${node.id}: wake up`);
+      this._updateNodeStatus(node);
+    });
   }
 
+  // internal update of node status
   _updateNodeStatus(node: ZWaveNode) {
     // TODO: handle as event
     if (node) {

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-import "./hubapi.js";
+import "../lib/hubapi.js";
 import path from "path";
-import { HubAPI } from "./hubapi.js";
+import { HubAPI } from "../lib/hubapi.js";
 
 // commandline args: main certsDir gwURL
 const defaultCertsDir = "./certs/"

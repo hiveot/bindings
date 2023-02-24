@@ -1,15 +1,16 @@
 
 
 import type {
-  Driver, TranslatedValueID, ValueMetadataNumeric, ZWaveNode,
+  Driver, TranslatedValueID, ValueMetadataNumeric, ZWaveNode, ZWaveNodeEventCallbacks,
   ZWaveNodeValueNotificationArgs
 } from "zwave-js";
-import type { HubAPI } from "./hubapi.js";
-import { getPropName, parseNode } from "./parseNode.js";
+import type { HubAPI } from "../lib/hubapi.js";
+import {EventNameAlive, EventNameInclusion, getPropID, parseNode} from "./parseNode.js";
 // import { DevicePubSubImpl } from "./pubsub";
-import type { ThingTD } from "./thing.js";
+import type { ThingTD } from "../lib/thing.js";
 import { ValueMap } from "./valueMap.js";
 import { ZWAPI } from "./zwapi.js";
+import {parseController} from "./parseController";
 
 // binding.ts holds the entry point to the zwave binding along with its configuration
 
@@ -35,14 +36,39 @@ export class ZwaveBinding {
     this.zwapi = new ZWAPI(
       this.handleNodeUpdate.bind(this),
       this.handleValueUpdate.bind(this),
+      this.handleNodeStateUpdate.bind(this),
     );
   }
 
-  // Handle discovery or update of a node and publish its TD event
+  // Handle update of one of the node state flags
+  // This emits a corresponding event
+  handleNodeStateUpdate(node: ZWaveNode, newState: string) {
+    let thingID = this.zwapi.getDeviceID(node.id)
+
+    // NOTE: the names of these events and state MUST match those in the TD event enum. See parseNode.
+    switch(newState) {
+      case "alive":
+      case "dead":
+      case "awake":
+      case "sleeping": {
+        this.hapi.pubEvent(thingID, EventNameAlive, newState)
+      } break;
+      case "interview completed":
+      case "interview failed":
+      case "interview started": {
+        this.hapi.pubEvent(thingID, EventNameInclusion, newState)
+      } break;
+    }
+  }
+    // Handle discovery or update of a node and publish its TD event
   // This establishes the first value map to update with handleValueUpdate events
   handleNodeUpdate(node: ZWaveNode) {
     console.log("handleNodeUpdate:node:", node.id);
     let thingTD = parseNode(this.zwapi, node);
+    if (node.isControllerNode) {
+        parseController(thingTD, this.zwapi.driver.controller)
+      }
+
     this.publishTD(node.id, thingTD);
 
     let valueMap = new ValueMap(node);
@@ -52,12 +78,12 @@ export class ZwaveBinding {
 
   // Handle update of a node's value. 
   // @param node: The node whos values have updated
-  // @param valueMap: map of values that are updating. This can include values that haven't changed.
+  // @param vid: zwave value id
+  // @param newValue: the updated value
   handleValueUpdate(node: ZWaveNode, vid: TranslatedValueID, newValue: any) {
-    let newValueName = newValue
     // submit the value or its name?
     // use value. translation to name using enum is a UI job
-    // let vidMeta = node.getValueMetadata(vid)
+    let vidMeta = node.getValueMetadata(vid)
     // if (vidMeta.type == "number") {
     //   let vmNumeric = vidMeta as ValueMetadataNumeric
     //   if (vmNumeric.states) {
@@ -65,13 +91,13 @@ export class ZwaveBinding {
     //   }
     // }
 
-    let propName = getPropName(vid)
+    let propID = getPropID(vid, vidMeta)
     let valueMap = this.lastValues.get(node.id);
     // update the map of recent values
-    let lastValue = valueMap?.get(propName)
+    let lastValue = valueMap?.get(propID)
     if (lastValue !== newValue) {
-      valueMap?.set(propName, newValue)
-      this.publishEvent(node.id, propName, newValueName)
+      valueMap?.set(propID, newValue)
+      this.publishEvent(node.id, propID, newValue)
     }
   }
 

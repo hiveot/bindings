@@ -19,7 +19,6 @@ export class DataSchema extends Object {
     //  for example: ["option1", "option2"]
     public enum: any[] | undefined = undefined
 
-
     // number maximum value
     public maximum: number | undefined = undefined
 
@@ -55,14 +54,6 @@ export class DataSchema extends Object {
 
     // Boolean value to indicate whether a property interaction / value is write-only (=true) or not (=false)
     public writeOnly: boolean = false
-
-}
-
-// Form describing supported protocol binding operations
-export class TDForm extends Object {
-    public href: string = ""
-    public op: string = ""
-    public contentType: string = "application/json"
 }
 
 export class InteractionAffordance extends Object {
@@ -71,18 +62,17 @@ export class InteractionAffordance extends Object {
     // without having to separately pass a name.
     name: string = ""
 
+    // type of affordance, eg temperature, switch,...
+    "@type": string | undefined
+
     // Provides additional (human-readable) information based on a default language
     public description: string | undefined
     // Provides additional nulti-language information
     public descriptions: string[] | undefined = undefined
 
-    // Form hypermedia controls to describe how an operation can be performed
-    // Forms are serializations of Protocol Bindings.
-    public forms: TDForm[] | undefined = undefined
-
-    // Human readable title in the default language
+    // Human-readable title in the default language
     public title: string | undefined
-    // Human readable titles in additional languages
+    // Human-readable titles in additional languages
     public titles: string[] | undefined = undefined
 
 }
@@ -112,7 +102,7 @@ export class ActionAffordance extends InteractionAffordance {
  */
 export class EventAffordance extends InteractionAffordance {
     // Data schema of the event instance message, eg the event payload
-    public data: DataSchema | undefined = undefined
+    public data: DataSchema = new DataSchema()
 }
 
 /** Thing Description property affordance
@@ -122,14 +112,12 @@ export class EventAffordance extends InteractionAffordance {
  */
 export class PropertyAffordance extends DataSchema {
 
-    // property name is assigned the property name to be able to use in an array for presentation
-    name: string = ""
+    // id is the property ID in the map, so it is available when the properties are provided as an array
+    id: string = ""
 
-    // Form hypermedia controls to describe how an operation can be performed
-    // Forms are serializations of Protocol Bindings.
-    // In WoST properties do not have individual protocol bindings for their operations
-    // so this is empty (why is it mandatory?)
-    public forms: TDForm[] | undefined = undefined
+    // Initial value at time of TD creation
+    // not part of the WoT definition but useful for testing and debugging
+    public initialValue: any | undefined = undefined
 
     // Optional nested properties. Map with PropertyAffordance
     // used when a property has multiple instances, each with their own name
@@ -143,16 +131,15 @@ export class ThingTD extends Object {
 
     /**
      * Create a new instance of Thing Description document
-     * 
+     *
      * @param deviceID thingID of this device
-     * @param deviceType one of vocabulary's DeviceTypeXyz
      * @param title human readable title (name) of the device
-     * @param publisherID thingID of the publisher of this device
+     * @param deviceType one of vocabulary's DeviceTypeXyz
+     * @param description more detailed description of the device
      */
-    constructor(deviceID: string, publisherID: string, deviceType: string, title: string, description: string) {
+    constructor(deviceID: string, deviceType: string, title: string, description: string) {
         super();
         this.id = deviceID;
-        this.publisherID = publisherID;
         this["@type"] = deviceType;
         this.title = title;
         this.description = description;
@@ -163,7 +150,9 @@ export class ThingTD extends Object {
     /** Unique thing ID */
     public readonly id: string | undefined = "";
 
-    /** Publisher deviceID of the binding that is publishing this thing */
+    /** Publisher deviceID of the binding that created this thing
+        Not part of the WoT standard but useful to have
+     */
     public publisherID: string = "";
 
     /** Document creation date in ISO8601 */
@@ -211,38 +200,40 @@ export class ThingTD extends Object {
         action.input.type = dataType;
         return action
     }
+
     // AddProperty provides a simple way to add a Thing property to the TD
     // This returns the property affordance that can be augmented/modified directly
     // By default this property is read-only. (eg an attribute)
     //
-    // @param name is the name under which it is stored in the property affordance map.
+    // @param id is the instance ID under which it is stored in the property affordance map.
     // @param title is the title used in the property. Leave empty to use the name.
-    // @param dataType is the type of data the property holds, WoTDataTypeNumber, ..Object, ..Array, ..String, ..Integer, ..Boolean or null
-    AddProperty(name: string, title: string | undefined, dataType: DataType): PropertyAffordance {
+    // @param dataType is the type of data the property holds, DataTypeNumber, ..Object, ..Array, ..String, ..Integer, ..Boolean or null
+    // @param initialValue the value at time of creation
+    AddProperty(id: string, title: string | undefined, dataType: DataType, initialValue: any): PropertyAffordance {
         let prop = new PropertyAffordance()
-        prop.name = name;
+        prop.id = id;
         prop.type = dataType;
-        prop.title = title ? title : name;
+        prop.title = title ? title : id;
         prop.readOnly = true;
-        this.properties[name] = prop;
+        prop.initialValue = initialValue;
+        this.properties[id] = prop;
         return prop
     }
 
     // AddPropertyIf only adds the property if the first parameter is not undefined 
     //
-    // @param ifNotUndefined add the attribute if not undefined
-    // @param name is the name under which it is stored in the property affordance map.
+    // @param initialValue add the attribute if the initial value is not undefined
+    // @param id is the instance ID under which it is stored in the property affordance map.
     // @param title is the title used in the property. Leave empty to use the name.
     // @param dataType is the type of data the property holds, DataTypeNumber, ..Object, ..Array, ..String, ..Integer, ..Boolean or null
-    AddPropertyIf(ifNotUndefined: any, name: string, title: string | undefined, dataType: DataType): PropertyAffordance | undefined {
-        if (ifNotUndefined != undefined) {
-            let prop = new PropertyAffordance()
-            prop.name = name;
-            prop.type = dataType;
-            prop.title = title ? title : name;
-            prop.readOnly = true;
-            this.properties[name] = prop;
-            return prop
+    AddPropertyIf(
+        initialValue: any,
+        id: string,
+        title: string | undefined,
+        dataType: DataType): PropertyAffordance | undefined {
+
+        if (initialValue != undefined) {
+            return this.AddProperty(id, title, dataType, initialValue)
         }
         return undefined
     }

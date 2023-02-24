@@ -14,27 +14,32 @@
         "moduleResolution": "node",
         "noImplicitAny": true,
         "noImplicitThis": true,
-        "outDir": "./build",
+        "outDir": "build",
+        "paths": {
+            "@binding/*": ["../binding/*"],
+            "@lib/*": ["../lib/*"]
+        },
         "preserveSymlinks": true, /* Necessary to support yarn portals with the node-modules linker, used by yarn link (berry) */
         "pretty": true,
         "resolveJsonModule": true,
-        "rootDir": "src",
+        "rootDirs": ["./src"],
         "skipLibCheck": true,
         "sourceMap": true,
         "strict": true,
         "target": "ES2018", // match zwavejs?
         "typeRoots": [ // for node-ts
-            "src/global.d.ts" // for use with websocket and wasm globals
+            "src/binding/global.d.ts"
+            // for use with websocket and wasm globals
         ],
         // watch=true breaks CI build steps
-        "watch": false,
+        "watch": false
     },
     "lib": [
-        "ES2015"
+        "ES2018"
     ],
     "include": [
         "src/**/*.ts",
-        "src/**/*.d.ts",
+        "src/lib/**/*.ts"
     ],
     "exclude": [
         "build/**",

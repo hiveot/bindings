@@ -5,7 +5,12 @@ INSTALL_HOME=~/bin/hiveot
 BINDINGS_HOME=$(INSTALL_HOME)/bin/bindings
 .DEFAULT_GOAL := help
 
+.FORCE:
+
 all: wasm js
+
+build: .FORCE  ## Compile typescript and bundle into binary package
+	yarn build
 
 wasm: ## Compile go to wasm
 	GOOS=js GOARCH=wasm go build -o ${BUILD_FOLDER}/hapi.wasm cmd/hapi/main.go
@@ -15,7 +20,7 @@ js:  ## Compile typescript to javascript
 	tsc
 
 clean: ## Clear build and cache
-	rm dist/*
+	rm -f dist/*
 	go clean
 
 help: ## Show this help

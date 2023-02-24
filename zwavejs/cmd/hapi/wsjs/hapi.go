@@ -198,7 +198,7 @@ func (hapi *HubAPI) PubTD(this js.Value, args []js.Value) interface{} {
 		thingID := args[0].String()
 		deviceType := args[1].String()
 		td := args[2].String() // td
-		logrus.Infof("publishing td id=%s, dtype=%s, td=%s", thingID, deviceType, td)
+		logrus.Infof("publishing td id=%s, dtype=%s", thingID, deviceType)
 		svcPubSub, err := hapi.getServicePubSub()
 		if err != nil {
 			return this, err
