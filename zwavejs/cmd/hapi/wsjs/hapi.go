@@ -3,6 +3,7 @@ package wsjs
 import (
 	"context"
 	"errors"
+	"github.com/hiveot/hub/api/go/hubapi"
 	"os"
 	"syscall/js"
 	"time"
@@ -11,7 +12,6 @@ import (
 	"capnproto.org/go/capnp/v3/rpc"
 	"github.com/sirupsen/logrus"
 
-	"github.com/hiveot/hub.capnp/go/hubapi"
 	"github.com/hiveot/hub/pkg/pubsub"
 
 	"github.com/hiveot/hub/lib/thing"

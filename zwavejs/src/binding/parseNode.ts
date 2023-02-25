@@ -142,9 +142,10 @@ export function getPropID(vid: TranslatedValueID, vidMeta: ValueMetadata): strin
 // this returns 
 //  action: the vid is writable and not readable
 //  event: the vid is a readonly command CC ?
-//  attr: the vid is read-only and not an event
-//  config: the vid is writable and not an action
-function getVidType(node: ZWaveNode, vid: TranslatedValueID): "action" | "event" | "config" | "attr" {
+//  attr: the vid is read-only, not an event, and has a value or default
+//  config: the vid is writable, not an action, and has a value or default
+//  undefined if the vid CC is deprecated or obsolete
+function getVidType(node: ZWaveNode, vid: TranslatedValueID): "action" | "event" | "config" | "attr" |undefined{
     let vidMeta = node.getValueMetadata(vid)
 
     switch (vid.commandClass) {
@@ -154,39 +155,72 @@ function getVidType(node: ZWaveNode, vid: TranslatedValueID): "action" | "event"
             return vidMeta.writeable ? "action" : "event";
             // return "attr"
         }
-        // CC's for actuator devices
+        //--- CC's for actions/actuator devices
+        case CommandClasses["Alarm Silence"]:
         case CommandClasses["Barrier Operator"]:
         case CommandClasses["Binary Switch"]:
         case CommandClasses["Binary Toggle Switch"]:
-        case CommandClasses["Color Switch"] :
         case CommandClasses["Door Lock"] :
+        case CommandClasses["HRV Control"] :
+        case CommandClasses["Humidity Control Mode"] :
         case CommandClasses["Indicator"] :
         case CommandClasses["Multilevel Switch"] :
         case CommandClasses["Simple AV Control"] :
-        case CommandClasses["Sound Switch"] :
-        case CommandClasses["Thermostat Mode"] :
-        case CommandClasses["Thermostat Setback"] :
-        case CommandClasses["Thermostat Setpoint"] :
         case CommandClasses["Window Covering"]:
         {
             return vidMeta.writeable ? "action" : "event";
         }
-        // CC's for data reporting devices
+
+        //-- CC's for data reporting devices
+        case CommandClasses["Authentication"]:
         case CommandClasses["Binary Sensor"]:
+        case CommandClasses["Central Scene"]:
         case CommandClasses["Entry Control"]:
+        case CommandClasses["Energy Production"]:
+        case CommandClasses["HRV Status"]:
+        case CommandClasses["Humidity Control Operating State"] :
         case CommandClasses["Multilevel Sensor"]:
         case CommandClasses.Meter:
+        case CommandClasses["Meter Table Monitor"]:
         case CommandClasses.Notification:
-        case CommandClasses["Central Scene"]: {
+        case CommandClasses["Sound Switch"]:
+        case CommandClasses["Thermostat Fan State"]:
+        case CommandClasses["Thermostat Operating State"]: {
             return "event"
         }
-        case CommandClasses.Configuration: {
-            return "config"
+        //--- CC's for configuration or attributes
+        case CommandClasses["Anti-Theft"]:
+        case CommandClasses["Anti-Theft Unlock"]:
+        case CommandClasses["Color Switch"] :
+        case CommandClasses.Configuration:
+        case CommandClasses["Generic Schedule"]:
+        case CommandClasses["Humidity Control Setpoint"] :
+        case CommandClasses["Irrigation"]:
+        case CommandClasses["Meter Table Configuration"]:
+        case CommandClasses["Meter Table Push Configuration"]:
+        case CommandClasses["Schedule"]:
+        case CommandClasses["Scene Actuator Configuration"]:     // 1..255 scene IDs
+        case CommandClasses["Scene Controller Configuration"]:   // 1..255 scene IDs
+        case CommandClasses["Thermostat Fan Mode"]:
+        case CommandClasses["Thermostat Mode"] :
+        case CommandClasses["Thermostat Setpoint"]:
+        case CommandClasses["Thermostat Setback"]:
+        case CommandClasses["Tariff Table Configuration"]:
+        case CommandClasses["User Code"]: {
+            return vidMeta.writeable ? "config": "attr"
         }
+
         case CommandClasses["Wake Up"]: {
             // wakeup interval is config, wakeup report is attr, wakeup notification is event
             // FIXME: determine if this is a wakeup notification (event)
             return vidMeta.writeable ? "config": "attr"
+        }
+
+        //--- deprecated CCs
+        case CommandClasses["All Switch"]:  //
+        case CommandClasses["Alarm Sensor"]:  // nodes also have Notification CC
+        {
+            return undefined
         }
     }
 
@@ -271,18 +305,25 @@ export function parseNode(zwapi: ZWAPI, node: ZWaveNode): ThingTD {
 
     //--- Step 3: add node state events and actions
     // FIXME: These names must match the event emitter in binding.ts
-    let ev = td.AddEvent(EventNameInclusion, "Node interview status", DataType.String)
-    ev.data.enum = ["interview started", "interview completed", "interview failed"]
+    td.AddEvent(EventNameInclusion, "inclusion","Node interview status", "")
+     .data = new DataSchema({
+        title:"Progress",
+        type: DataType.String,
+        enum: ["interview started", "interview completed", "interview failed"]
+    })
 
-    ev = td.AddEvent(EventNameAlive, "Node alive status", DataType.String)
-    ev.data.enum = ["sleeping", "awake", "alive", "dead"]
+    td.AddEvent(EventNameAlive, EventNameAlive,"Node alive status")
+     .data = new DataSchema({
+        title:"Status",
+        type: DataType.String,
+        enum: ["sleeping", "awake", "alive", "dead"]
+     })
 
     // general purpose node actions
     // FIXME: These names must match the action handler in binding.ts
-    td.AddAction("refreshInfo", "Reset nearly all node info", DataType.Unknown)
-    td.AddAction("refreshValues", "Refresh all non-static sensor and actuator values", DataType.Unknown)
-    td.AddAction("ping", "Ping the device (deviceID)", DataType.String)
-
+    td.AddAction("refreshInfo", "refreshInfo", "Refresh Device Info","Reset nearly all node info")
+    td.AddAction("refreshValues", "refreshValues","Refresh Values","Refresh all non-static sensor and actuator values")
+    td.AddAction("ping", "ping", "Ping the device")
 
     //--- Step 4: add properties, events, and actions from the ValueIDs
     let vids = node.getDefinedValueIDs()
@@ -306,10 +347,16 @@ export function parseNode(zwapi: ZWAPI, node: ZWaveNode): ThingTD {
                 tditem = addEvent(td, node, vid, propID)
             } break;
             case "config": {
-                tditem = addConfig(td, node, vid, propID, vidValue)
+                // if there is no value then don't include it
+                if (vidValue != undefined || vidMeta.default) {
+                    tditem = addConfig(td, node, vid, propID, vidValue)
+                }
             } break;
             default: {
-                tditem = addAttribute(td, node, vid, propID, vidValue)
+                // if there is no value then don't include it
+                if (vidValue != undefined || vidMeta.default) {
+                    tditem = addAttribute(td, node, vid, propID, vidValue)
+                }
             } break;
         }
     }

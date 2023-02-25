@@ -5,9 +5,8 @@ go 1.19
 require (
 	capnproto.org/go/capnp/v3 v3.0.0-alpha.24
 	github.com/hiveot/hub v0.0.0-20230207180321-215941d87c3c
-	github.com/hiveot/hub.capnp v0.1.0-alpha
 	github.com/sirupsen/logrus v1.9.0
-	zenhack.net/go/websocket-capnp v0.0.0-20230122013820-cb32f4dfbb0b
+	zenhack.net/go/websocket-capnp v0.0.0-20230212023810-f179b8b2c72b
 )
 
 require (
@@ -20,7 +19,5 @@ require (
 )
 
 replace github.com/hiveot/hub => ../../hub
-
-replace github.com/hiveot/hub.capnp => ../../hub.capnp
 
 replace zenhack.net/go/websocket-capnp => ../../../go-websocket-capnp

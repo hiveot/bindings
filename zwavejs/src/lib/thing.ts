@@ -4,14 +4,19 @@
 import { DataType } from "./vocabulary.js"
 
 export class DataSchema extends Object {
+    public constructor(init?:Partial<DataSchema>) {
+        super();
+        Object.assign(this, init)
+    }
+
     // Used to indicate input, output, attribute. See vocab.WoSTAtType
-    public "@type": string | undefined
+    public "@type": string | undefined = undefined
 
     // Provides a default value of any type as per data schema
-    public default: string | undefined
+    public default: string | undefined = undefined
 
     // Provides additional (human-readable) information based on a default language
-    public description: string | undefined
+    public description: string | undefined = undefined
     // Provides additional nulti-language information
     public descriptions: string[] | undefined = undefined
 
@@ -41,9 +46,9 @@ export class DataSchema extends Object {
     // the value true implies read-only.
     public readOnly: boolean = true
 
-    // Human readable title in the default language
+    // Human-readable title in the default language
     public title: string | undefined
-    // Human readable titles in additional languages
+    // Human-readable titles in additional languages
     public titles: string[] | undefined = undefined
 
     // Type provides JSON based data type,  one of DataTypeNumber, ...object, array, string, integer, boolean or null
@@ -59,8 +64,8 @@ export class DataSchema extends Object {
 export class InteractionAffordance extends Object {
     // Unique name of the affordance, eg: property, event or action name
     // While not part of the official specification, it allows passing the affordance
-    // without having to separately pass a name.
-    name: string = ""
+    // without having to separately pass its id.
+    id: string = ""
 
     // type of affordance, eg temperature, switch,...
     "@type": string | undefined
@@ -83,12 +88,12 @@ export class ActionAffordance extends InteractionAffordance {
     /**
      * Input data for the action when applicable
      */
-    public input?: DataSchema = new DataSchema()
+    public input?: DataSchema = undefined
 
     /**
-     * Action is idempotent, eg repeated calls have the same result
+     * Action is idempotent. Repeated calls have the same result.
      */
-    public idempotent: boolean = false
+    public idempotent?: boolean = undefined
 
     // // action input parameters
     // public inputs = new Map<string, {
@@ -102,7 +107,7 @@ export class ActionAffordance extends InteractionAffordance {
  */
 export class EventAffordance extends InteractionAffordance {
     // Data schema of the event instance message, eg the event payload
-    public data: DataSchema = new DataSchema()
+    public data?: DataSchema = undefined
 }
 
 /** Thing Description property affordance
@@ -150,11 +155,6 @@ export class ThingTD extends Object {
     /** Unique thing ID */
     public readonly id: string | undefined = "";
 
-    /** Publisher deviceID of the binding that created this thing
-        Not part of the WoT standard but useful to have
-     */
-    public publisherID: string = "";
-
     /** Document creation date in ISO8601 */
     public created: string = "";
 
@@ -164,7 +164,7 @@ export class ThingTD extends Object {
     /** Human description for a thing */
     public description: string = "";
 
-    /** Human readable title for ui representation */
+    /** Human-readable title for ui representation */
     public title: string = "";
 
     /** Type of thing defined in the vocabulary */
@@ -186,19 +186,39 @@ export class ThingTD extends Object {
     // AddAction provides a simple way to add an action to the TD
     // This returns the action affordance that can be augmented/modified directly
     //
-    // @param name is the name under which it is stored in the action map.
-    // @param title is the title used in the action. Leave empty to use name.
-    // @param dataType is the type of data the action holds, DataTypeNumber, ..Object, ..Array, ..String, ..Integer, ..Boolean or null
-    AddAction(name: string, title: string | undefined, dataType: DataType): ActionAffordance {
+    // If the action accepts input parameters then set the .Data field to a DataSchema instance that
+    // describes the parameter(s).
+    //
+    // @param id is the key under which it is stored in the action map.
+    // @param actionType one of the action types from the vocabulary
+    // @param title is the short display title of the action.
+    // @param description optional detailed description of the action
+    AddAction(id: string, actionType: string, title: string, description?: string): ActionAffordance {
         let action = new ActionAffordance()
-        action.name = name;
-        action.input = new DataSchema();
-        action.title = title ? title : name;
-        this.actions[name] = action;
-
-        action.input.title = title;
-        action.input.type = dataType;
+        action.id = id;
+        action["@type"] = actionType
+        action.title = title
+        action.description = description
+        this.actions[id] = action;
         return action
+    }
+
+    // AddEvent provides a simple way to add an event definition to the TD.
+    // This returns the event affordance that can be augmented/modified directly.
+    //
+    // @param id is the event instance ID under which it is stored in the event map.
+    //        This can be anything arbitrary as long as the TD and value event use the same ID.
+    // @param eventType one of the event types from the vocabulary
+    // @param title is the short display title of the action.
+    // @param description optional detailed description of the action
+    AddEvent(id: string, eventType:string, title: string, description?: string): EventAffordance {
+        let ev = new EventAffordance()
+        ev.id = id;
+        ev["@type"] = eventType
+        ev.title = title ? title : id;
+        ev.description = description
+        this.events[id] = ev;
+        return ev
     }
 
     // AddProperty provides a simple way to add a Thing property to the TD
@@ -247,28 +267,10 @@ export class ThingTD extends Object {
                 res.push(val)
             }
         }
-        let isArray = res instanceof (Array)
-        console.log("isArray:", isArray)
         return res
     }
 
 
-    // AddEvent provides a simple way to add an event definition to the TD.
-    // This returns the event affordance that can be augmented/modified directly.
-    //
-    // @param name is the name under which it is stored in the event map.
-    // @param title is the title used in the property. Leave empty to use name.
-    // @param dataType is the type of data the property holds, WoTDataTypeNumber, ..Object, ..Array, ..String, ..Integer, ..Boolean or null
-    AddEvent(name: string, title: string | undefined, dataType: DataType): EventAffordance {
-        let ev = new EventAffordance()
-        ev.name = name;
-        ev.data = new DataSchema();
-        ev.data.title = title
-        ev.data.type = dataType;
-        ev.title = title ? title : name;
-        this.events[name] = ev;
-        return ev
-    }
     // Convert readonly properties into an array for display
     // Returns table of {key, tdproperty}
     // public static GetThingAttributes = (td: ThingTD): PropertyAffordance[] => {
@@ -295,19 +297,7 @@ export class ThingTD extends Object {
         }
         return res
     }
-    // // Convert the writable properties into an array for display
-    // // Returns table of {key, tdproperty}
-    // public static GetThingConfiguration = (td: ThingTD): PropertyAffordance[] => {
-    //   let res = Array<PropertyAffordance>()
-    //   if (!!td && !!td.properties) {
-    //     for (let [key, val] of Object.entries(td.properties)) {
-    //       if (!val.readOnly) {
-    //         res.push(val)
-    //       }
-    //     }
-    //   }
-    //   return res
-    // }
+
 
     // Returns names of configuration properties
     public static GetConfigurationNames = (td: ThingTD): string[] => {

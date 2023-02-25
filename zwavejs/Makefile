@@ -21,6 +21,7 @@ js:  ## Compile typescript to javascript
 
 clean: ## Clear build and cache
 	rm -f dist/*
+	rf -rf build/*
 	go clean
 
 help: ## Show this help

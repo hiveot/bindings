@@ -1,16 +1,12 @@
 
 
-import type {
-  Driver, TranslatedValueID, ValueMetadataNumeric, ZWaveNode, ZWaveNodeEventCallbacks,
-  ZWaveNodeValueNotificationArgs
-} from "zwave-js";
+import type {  TranslatedValueID, ZWaveNode } from "zwave-js";
 import type { HubAPI } from "../lib/hubapi.js";
 import {EventNameAlive, EventNameInclusion, getPropID, parseNode} from "./parseNode.js";
-// import { DevicePubSubImpl } from "./pubsub";
 import type { ThingTD } from "../lib/thing.js";
 import { ValueMap } from "./valueMap.js";
 import { ZWAPI } from "./zwapi.js";
-import {parseController} from "./parseController";
+import {parseController} from "./parseController.js";
 
 // binding.ts holds the entry point to the zwave binding along with its configuration
 
