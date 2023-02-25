@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/hiveot/bindings/owserver/internal/eds"
-	"github.com/hiveot/hub.capnp/go/vocab"
+	"github.com/hiveot/hub/api/go/vocab"
 )
 
 // simulation file for testing without OWServer gateway
@@ -75,7 +75,7 @@ func TestParseNodeFile(t *testing.T) {
 	assert.Lenf(t, deviceNodes, 4, "Expected 4 nodes")
 
 	// Must be able to lookup a node name
-	edsTempName := eds.LookupEdsName(vocab.PropNameTemperature)
+	edsTempName := eds.LookupEdsName(vocab.VocabTemperature)
 	assert.Equal(t, "Temperature", edsTempName)
 }
 

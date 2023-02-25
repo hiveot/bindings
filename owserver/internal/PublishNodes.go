@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 
 	"github.com/hiveot/bindings/owserver/internal/eds"
-	"github.com/hiveot/hub.capnp/go/vocab"
+	"github.com/hiveot/hub/api/go/vocab"
 
 	"github.com/hiveot/hub/lib/thing"
 )
@@ -22,7 +22,7 @@ func (binding *OWServerBinding) CreateTDFromNode(node *eds.OneWireNode) (tdoc *t
 	thingID := node.NodeID
 
 	tdoc = thing.NewTD(thingID, node.Name, node.DeviceType)
-	tdoc.AddProperty(vocab.PropNameDescription, node.Description, vocab.WoTDataTypeString)
+	tdoc.AddProperty(vocab.VocabDescription, node.Description, vocab.WoTDataTypeString)
 	tdoc.UpdateTitleDescription(node.Name, node.Description)
 
 	// Map node attribute to Thing properties
@@ -33,13 +33,23 @@ func (binding *OWServerBinding) CreateTDFromNode(node *eds.OneWireNode) (tdoc *t
 		// sensors are added as both properties and events
 		if attr.IsSensor {
 			// sensors emit events
-			evAff := tdoc.AddEvent(attrName, attrName, attr.DataType)
-			evAff.Data.Unit = prop.Unit
+			eventID := attrName
+			evAff := tdoc.AddEvent(eventID, attrName, attrName, "")
+			// TODO: only add data schema if the event carries a value
+			evAff.Data = &thing.DataSchema{
+				Type: attr.DataType,
+				Unit: prop.Unit,
+			}
 
 			// writable sensors are actuators and can be triggered with actions
 			if attr.Writable {
-				actionAff := tdoc.AddAction(attrName, attrName, attr.DataType)
-				actionAff.Input.Unit = prop.Unit
+				actionID := attrName
+				actionAff := tdoc.AddAction(actionID, attrName, attrName, "")
+				// TODO: only add input schema if the action takes a value
+				actionAff.Input = &thing.DataSchema{
+					Type: attr.DataType,
+					Unit: prop.Unit,
+				}
 			}
 		} else {
 			// non-sensors are attributes. Writable attributes are configuration.
@@ -69,7 +79,7 @@ func (binding *OWServerBinding) PublishThings(nodes []*eds.OneWireNode) (err err
 	for _, node := range nodes {
 		td := binding.CreateTDFromNode(node)
 		tdDoc, _ := json.Marshal(td)
-		err2 := binding.pubsub.PubTD(ctx, td.ID, td.DeviceType, tdDoc)
+		err2 := binding.pubsub.PubTD(ctx, td.ID, td.AtType, tdDoc)
 		if err2 != nil {
 			err = err2
 		}

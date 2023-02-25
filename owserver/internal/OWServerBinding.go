@@ -13,7 +13,7 @@ import (
 	"github.com/hiveot/hub/lib/thing"
 	"github.com/hiveot/hub/pkg/pubsub"
 
-	"github.com/hiveot/hub.capnp/go/vocab"
+	"github.com/hiveot/hub/api/go/vocab"
 
 	"github.com/hiveot/bindings/owserver/internal/eds"
 )
@@ -54,7 +54,7 @@ type OWServerBinding struct {
 func (binding *OWServerBinding) CreateBindingTD() *thing.TD {
 	thingID := binding.Config.BindingID
 	td := thing.NewTD(thingID, "OWServer binding", vocab.DeviceTypeBinding)
-	prop := td.AddProperty(vocab.PropNamePollInterval, "poll interval", vocab.WoTDataTypeInteger)
+	prop := td.AddProperty(vocab.VocabPollInterval, "poll interval", vocab.WoTDataTypeInteger)
 	prop.Unit = vocab.UnitNameSecond
 	prop.ReadOnly = false
 	return td
@@ -75,7 +75,7 @@ func (binding *OWServerBinding) Start(ctx context.Context) error {
 
 	td := binding.CreateBindingTD()
 	tdDoc, _ := json.Marshal(td)
-	err := binding.pubsub.PubTD(ctx, td.ID, td.DeviceType, tdDoc)
+	err := binding.pubsub.PubTD(ctx, td.ID, td.AtType, tdDoc)
 	if err != nil {
 		return err
 	}

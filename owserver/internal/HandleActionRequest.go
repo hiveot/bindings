@@ -7,7 +7,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/hiveot/bindings/owserver/internal/eds"
-	"github.com/hiveot/hub.capnp/go/vocab"
+	"github.com/hiveot/hub/api/go/vocab"
 	"github.com/hiveot/hub/lib/thing"
 )
 

@@ -19,7 +19,7 @@ import (
 	"github.com/hiveot/hub/pkg/pubsub/service"
 
 	"github.com/hiveot/bindings/owserver/internal"
-	"github.com/hiveot/hub.capnp/go/vocab"
+	"github.com/hiveot/hub/api/go/vocab"
 )
 
 // var homeFolder string

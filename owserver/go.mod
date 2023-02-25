@@ -3,14 +3,13 @@ module github.com/hiveot/bindings/owserver
 go 1.19
 
 require (
-	github.com/hiveot/hub v0.0.0-20230101070052-531fe772b59a
-	github.com/hiveot/hub.capnp v0.1.0-alpha
+	github.com/hiveot/hub v0.0.0-20230225055025-2dbb9b760fdc
 	github.com/sirupsen/logrus v1.9.0
 	github.com/stretchr/testify v1.8.1
 )
 
 require (
-	capnproto.org/go/capnp/v3 v3.0.0-alpha.23 // indirect
+	capnproto.org/go/capnp/v3 v3.0.0-alpha.24 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/gobwas/httphead v0.1.0 // indirect
 	github.com/gobwas/pool v0.2.1 // indirect
@@ -21,11 +20,9 @@ require (
 	go.uber.org/multierr v1.9.0 // indirect
 	go.uber.org/zap v1.24.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
-	golang.org/x/sys v0.4.0 // indirect
+	golang.org/x/sys v0.5.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	zenhack.net/go/websocket-capnp v0.0.0-20230122013820-cb32f4dfbb0b // indirect
+	zenhack.net/go/websocket-capnp v0.0.0-20230212023810-f179b8b2c72b // indirect
 )
 
 replace github.com/hiveot/hub => ../../hub
-
-replace github.com/hiveot/hub.capnp => ../../hub.capnp

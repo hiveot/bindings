@@ -1,6 +1,7 @@
 package main
 
 import (
+	"capnproto.org/go/capnp/v3/rpc"
 	"context"
 	"crypto/tls"
 	"crypto/x509"
@@ -20,10 +21,10 @@ import (
 func main() {
 	f, bindingCert, caCert := svcconfig.SetupFolderConfig(internal.DefaultBindingID)
 	bindingConfig := internal.NewBindingConfig()
-	f.LoadConfig(&bindingConfig)
+	_ = f.LoadConfig(&bindingConfig)
 
 	//logging.SetLogging(bindingConfig.Loglevel, hubConfig.LogFile)
-	pubSubSvc, err := ConnectToHub(
+	pubSubSvc, rpcConn, err := ConnectToHub(
 		bindingConfig.BindingID,
 		bindingConfig.HubURL,
 		bindingCert, caCert)
@@ -35,6 +36,7 @@ func main() {
 	binding := internal.NewOWServerBinding(bindingConfig, pubSubSvc)
 	ctx := listener.ExitOnSignal(context.Background(), nil)
 	err = binding.Start(ctx)
+	_ = rpcConn.Close()
 
 	if err != nil {
 		logrus.Errorf("%s: Failed to start: %s", internal.DefaultBindingID, err)
@@ -45,16 +47,15 @@ func main() {
 
 // ConnectToHub obtains the pubsub client from the Hub
 func ConnectToHub(instanceID, fullUrl string,
-	bindingCert *tls.Certificate, caCert *x509.Certificate) (pubsub.IDevicePubSub, error) {
+	bindingCert *tls.Certificate, caCert *x509.Certificate) (pubsub.IDevicePubSub, *rpc.Conn, error) {
 
 	rpcConn, hubClient, err := hubclient.ConnectToHubClient(fullUrl, bindingCert, caCert)
-	//conn, err := hubclient.ConnectToHub(fullUrl, bindingCert, caCert)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	//cl, err := hubclient.GetDevicePubSubClient(conn, instanceID)
-	pubsubCl := capnpclient.NewPubSubClient(rpcConn, hubClient)
+	pubsubCl := capnpclient.NewPubSubClient(hubClient)
 	deviceClient, err := pubsubCl.CapDevicePubSub(context.Background(), instanceID)
 
-	return deviceClient, err
+	return deviceClient, rpcConn, err
 }

@@ -13,7 +13,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/hiveot/hub.capnp/go/vocab"
+	"github.com/hiveot/hub/api/go/vocab"
 
 	"github.com/sirupsen/logrus"
 )
@@ -28,11 +28,11 @@ var deviceTypeMap = map[string]string{
 
 // AttrVocab maps OWServer attribute names to IoT vocabulary
 var AttrVocab = map[string]string{
-	"MACAddress": vocab.PropNameMAC,
-	//"DateTime":   vocab.PropNameDateTime,
-	"DeviceName": vocab.PropNameName,
-	"HostName":   vocab.PropNameHostname,
-	"Version":    vocab.PropNameSoftwareVersion,
+	"MACAddress": vocab.VocabMAC,
+	//"DateTime":   vocab.VocabDateTime,
+	"DeviceName": vocab.VocabName,
+	"HostName":   vocab.VocabHostname,
+	"Version":    vocab.VocabSoftwareVersion,
 	// Exclude/ignore the following attributes as they are chatty and not useful
 	"BarometricPressureHg": "",
 	"Counter1":             "",
@@ -53,14 +53,14 @@ var SensorTypeVocab = map[string]struct {
 	decimals int // number of decimals accuracy for this value
 }{
 	// "BarometricPressureHg": vocab.PropNameAtmosphericPressure, // unit Hg
-	"BarometricPressureMb": {name: vocab.PropNameAtmosphericPressure, dataType: vocab.WoTDataTypeNumber, decimals: 0}, // unit Mb
-	//"DewPoint":             {name: vocab.PropNameDewpoint, dataType: vocab.WoTDataTypeNumber, decimals: 1},
-	//"HeatIndex":            {name: vocab.PropNameHeatIndex, dataType: vocab.WoTDataTypeNumber, decimals: 1},
-	"Humidity":        {name: vocab.PropNameHumidity, dataType: vocab.WoTDataTypeNumber, decimals: 0},
-	"Humidex":         {name: vocab.PropNameHumidex, dataType: vocab.WoTDataTypeNumber, decimals: 1},
-	"Light":           {name: vocab.PropNameLuminance, dataType: vocab.WoTDataTypeNumber, decimals: 0},
-	"RelayState":      {name: vocab.PropNameRelay, dataType: vocab.WoTDataTypeBool, decimals: 0},
-	"Temperature":     {name: vocab.PropNameTemperature, dataType: vocab.WoTDataTypeNumber, decimals: 1},
+	"BarometricPressureMb": {name: vocab.VocabAtmosphericPressure, dataType: vocab.WoTDataTypeNumber, decimals: 0}, // unit Mb
+	//"DewPoint":             {name: vocab.VocabDewpoint, dataType: vocab.WoTDataTypeNumber, decimals: 1},
+	//"HeatIndex":            {name: vocab.VocabHeatIndex, dataType: vocab.WoTDataTypeNumber, decimals: 1},
+	"Humidity":        {name: vocab.VocabHumidity, dataType: vocab.WoTDataTypeNumber, decimals: 0},
+	"Humidex":         {name: vocab.VocabHumidex, dataType: vocab.WoTDataTypeNumber, decimals: 1},
+	"Light":           {name: vocab.VocabLuminance, dataType: vocab.WoTDataTypeNumber, decimals: 0},
+	"RelayState":      {name: vocab.VocabRelay, dataType: vocab.WoTDataTypeBool, decimals: 0},
+	"Temperature":     {name: vocab.VocabTemperature, dataType: vocab.WoTDataTypeNumber, decimals: 1},
 	"VoltageChannel1": {name: "VoltageChannel1", dataType: vocab.WoTDataTypeNumber, decimals: 1},
 	"VoltageChannel2": {name: "VoltageChannel2", dataType: vocab.WoTDataTypeNumber, decimals: 1},
 	"VoltageChannel3": {name: "VoltageChannel3", dataType: vocab.WoTDataTypeNumber, decimals: 1},
@@ -213,7 +213,7 @@ func ParseOneWireNodes(
 	// todo: find a better place for this
 	if isRootNode {
 		owAttr := OneWireAttr{
-			Name:     vocab.PropNameLatency,
+			Name:     vocab.VocabLatency,
 			Value:    fmt.Sprintf("%.2f", latency.Seconds()),
 			Unit:     "sec",
 			DataType: vocab.WoTDataTypeNumber,
