@@ -35,9 +35,7 @@ func (binding *OWServerBinding) setPrevValue(nodeID, attrName string, value stri
 // PublishNodeValues publishes node property values of each node
 // Properties are combined as submitted as a single 'properties' event.
 // Sensor values are send as individual events
-//
-//	onlyChanges, send the event only with changed values
-func (binding *OWServerBinding) PublishNodeValues(nodes []*eds.OneWireNode, onlyChanges bool) (err error) {
+func (binding *OWServerBinding) PublishNodeValues(nodes []*eds.OneWireNode) (err error) {
 
 	ctx := context.Background()
 	// Iterate the devices and their properties
@@ -48,16 +46,15 @@ func (binding *OWServerBinding) PublishNodeValues(nodes []*eds.OneWireNode, only
 		thingID := node.NodeID
 
 		for attrName, attr := range node.Attr {
-			skip := false
-			if onlyChanges {
-				prevValue, found := binding.getPrevValue(node.NodeID, attrName)
-				age := time.Now().Sub(prevValue.timestamp)
-				maxAge := time.Second * time.Duration(binding.Config.RepublishInterval)
-				// skip update if the value hasn't changed for less than the republish interval
-				skip = found &&
-					prevValue.value == attr.Value &&
-					age < maxAge
-			}
+			// only send the changed values
+			prevValue, found := binding.getPrevValue(node.NodeID, attrName)
+			age := time.Now().Sub(prevValue.timestamp)
+			maxAge := time.Second * time.Duration(binding.Config.RepublishInterval)
+			// skip update if the value hasn't changed for less than the republish interval
+			skip := found &&
+				prevValue.value == attr.Value &&
+				age < maxAge
+
 			if !skip {
 				binding.setPrevValue(node.NodeID, attrName, attr.Value)
 				if attr.IsSensor {
@@ -75,14 +72,12 @@ func (binding *OWServerBinding) PublishNodeValues(nodes []*eds.OneWireNode, only
 	return err
 }
 
-// RefreshPropertyValues polls the OWServer hub for Thing property values
-//
-//	onlyChanges only submit changed values
-func (binding *OWServerBinding) RefreshPropertyValues(onlyChanges bool) error {
+// RefreshPropertyValues polls the OWServer hub for changed Thing values
+func (binding *OWServerBinding) RefreshPropertyValues() error {
 	nodes, err := binding.edsAPI.PollNodes()
 	//nodeValueMap, err := binding.PollNodeValues()
 	if err == nil {
-		err = binding.PublishNodeValues(nodes, onlyChanges)
+		err = binding.PublishNodeValues(nodes)
 	}
 	return err
 }

@@ -89,18 +89,18 @@ func TestPoll(t *testing.T) {
 	assert.NoError(t, err)
 	err = servicePubSub.SubEvent(ctx, owsConfig.BindingID, "", "",
 		func(ev *thing.ThingValue) {
-			if ev.Name == vocab.WoTProperties {
+			if ev.ID == vocab.WoTProperties {
 				var value map[string][]byte
-				err = json.Unmarshal(ev.ValueJSON, &value)
-				assert.NoError(t, err)
+				err2 := json.Unmarshal(ev.ValueJSON, &value)
+				assert.NoError(t, err2)
 				//for propName, propValue := range value {
 				//	pv := string(propValue)
 				//logrus.Infof("%s: %s", propName, pv)
 				//}
 			} else {
 				var value interface{}
-				err = json.Unmarshal(ev.ValueJSON, &value)
-				assert.NoError(t, err)
+				err2 := json.Unmarshal(ev.ValueJSON, &value)
+				assert.NoError(t, err2)
 			}
 			tdCount.Add(1)
 		})
@@ -172,7 +172,7 @@ func TestAction(t *testing.T) {
 	// node in test data
 	const nodeID = "C100100000267C7E"
 	//var nodeAddr = thing.MakeThingAddr(owsConfig.BindingID, nodeID)
-	var actionName = vocab.PropNameRelay
+	var actionName = vocab.VocabRelay
 	var actionValue = ([]byte)("1")
 
 	ctx, ctxCancelFn := context.WithCancel(context.Background())

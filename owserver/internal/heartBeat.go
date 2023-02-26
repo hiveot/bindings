@@ -31,7 +31,7 @@ func (binding *OWServerBinding) heartBeat() {
 					tdCountDown = binding.Config.TDInterval
 				}
 
-				_ = binding.PublishNodeValues(nodes, true)
+				_ = binding.PublishNodeValues(nodes)
 				pollCountDown = binding.Config.PollInterval
 			}
 		}

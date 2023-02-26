@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/json"
+	"fmt"
 	"sync"
 	"sync/atomic"
 
@@ -54,9 +55,21 @@ type OWServerBinding struct {
 func (binding *OWServerBinding) CreateBindingTD() *thing.TD {
 	thingID := binding.Config.BindingID
 	td := thing.NewTD(thingID, "OWServer binding", vocab.DeviceTypeBinding)
-	prop := td.AddProperty(vocab.VocabPollInterval, "poll interval", vocab.WoTDataTypeInteger)
+	// these are configured through the configuration file.
+	prop := td.AddProperty(vocab.VocabPollInterval, vocab.VocabPollInterval, "Poll Interval", vocab.WoTDataTypeInteger)
 	prop.Unit = vocab.UnitNameSecond
-	prop.ReadOnly = false
+	prop.InitialValue = fmt.Sprintf("%d %s", binding.Config.PollInterval, vocab.UnitNameSecond)
+
+	prop = td.AddProperty("tdInterval", vocab.VocabPollInterval, "TD Publication Interval", vocab.WoTDataTypeInteger)
+	prop.Unit = vocab.UnitNameSecond
+	prop.InitialValue = fmt.Sprintf("%d %s", binding.Config.TDInterval, vocab.UnitNameSecond)
+
+	prop = td.AddProperty("valueInterval", vocab.VocabPollInterval, "Value Republication Interval", vocab.WoTDataTypeInteger)
+	prop.Unit = vocab.UnitNameSecond
+	prop.InitialValue = fmt.Sprintf("%d %s", binding.Config.RepublishInterval, vocab.UnitNameSecond)
+
+	prop = td.AddProperty("owServerAddress", vocab.VocabGatewayAddress, "OWServer gateway IP address", vocab.WoTDataTypeString)
+	prop.InitialValue = fmt.Sprintf("%s", binding.Config.OWServerAddress)
 	return td
 }
 
@@ -75,7 +88,7 @@ func (binding *OWServerBinding) Start(ctx context.Context) error {
 
 	td := binding.CreateBindingTD()
 	tdDoc, _ := json.Marshal(td)
-	err := binding.pubsub.PubTD(ctx, td.ID, td.AtType, tdDoc)
+	err := binding.pubsub.PubTD(ctx, td.ID, tdDoc)
 	if err != nil {
 		return err
 	}

@@ -21,8 +21,44 @@ import (
 // family to device type. See also: http://owfs.sourceforge.net/simple_family.html
 // Todo: get from config file so it is easy to update
 var deviceTypeMap = map[string]string{
-	"10": vocab.DeviceTypeThermometer,
-	"28": vocab.DeviceTypeThermometer,
+	"01": "serialNumber",               // 2401,2411 (1990A): Silicon Serial Number
+	"02": "securityKey",                // 1425 (1991): multikey 1153bit secure
+	"04": vocab.DeviceTypeTime,         // 2404 (1994): econoram time chip
+	"05": vocab.DeviceTypeBinarySwitch, // 2405: Addresable Switch
+	"06": vocab.DeviceTypeMemory,       // (1993) 4K memory ibutton
+	"08": vocab.DeviceTypeMemory,       // (1992) 1K memory ibutton
+	"0A": vocab.DeviceTypeMemory,       // (1995) 16K memory ibutton
+	"0C": vocab.DeviceTypeMemory,       // (1996) 64K memory ibutton
+	"10": vocab.DeviceTypeThermometer,  // 18S20: high precision digital thermometer
+	"12": vocab.DeviceTypeBinarySwitch, // 2406:  dual addressable switch plus 1k memory
+	"14": vocab.DeviceTypeEeprom,       // 2430A (1971): 256 EEPROM
+	"1A": vocab.DeviceTypeEeprom,       // (1963L) 4K Monetary
+	"1C": vocab.DeviceTypeEeprom,       // 28E04-100: 4K EEPROM with PIO
+	"1D": vocab.DeviceTypeMemory,       // 2423:  4K RAM with counter
+	"1F": "coupler",                    // 2409:  Microlan coupler?
+	"20": "adconverter",                // 2450:  Quad A/D convert
+	"21": vocab.DeviceTypeThermometer,  // 1921:  Thermochron iButton device
+	"22": vocab.DeviceTypeThermometer,  // 1822:  Econo digital thermometer
+	"24": vocab.DeviceTypeTime,         // 2415:  time chip
+	"26": vocab.DeviceTypeBatteryMon,   // 2438:  smart battery monitor
+	"27": vocab.DeviceTypeTime,         // 2417:  time chip with interrupt
+	"28": vocab.DeviceTypeThermometer,  // 18B20: programmable resolution digital thermometer
+	"29": vocab.DeviceTypeOnOffSwitch,  // 2408:  8-channel addressable switch
+	"2C": vocab.DeviceTypeSensor,       // 2890:  digital potentiometer"
+	"2D": vocab.DeviceTypeEeprom,       // 2431:  1k eeprom
+	"2E": vocab.DeviceTypeBatteryMon,   // 2770:  battery monitor and charge controller
+	"30": vocab.DeviceTypeBatteryMon,   // 2760, 2761, 2762:  high-precision li+ battery monitor
+	"31": vocab.DeviceTypeBatteryMon,   // 2720: efficient addressable single-cell rechargable lithium protection ic
+	"33": vocab.DeviceTypeEeprom,       // 2432 (1961S): 1k protected eeprom with SHA-1
+	"36": vocab.DeviceTypeSensor,       // 2740: high precision coulomb counter
+	"37": vocab.DeviceTypeEeprom,       // (1977): Password protected 32k eeprom
+	"3B": vocab.DeviceTypeThermometer,  // DS1825: programmable digital thermometer (https://www.analog.com/media/en/technical-documentation/data-sheets/ds1825.pdf)
+	"41": vocab.DeviceTypeSensor,       // 2422: Temperature Logger 8k mem
+	"42": vocab.DeviceTypeThermometer,  // DS28EA00: digital thermometer with PIO (https://www.analog.com/media/en/technical-documentation/data-sheets/ds28ea00.pdf)
+	"51": vocab.DeviceTypeIndicator,    // 2751: multi chemistry battery fuel gauge
+	"84": vocab.DeviceTypeTime,         // 2404S: dual port plus time
+	//# EDS0068: Temperature, Humidity, Barometric Pressure and Light Sensor
+	//https://www.embeddeddatasystems.com/assets/images/supportFiles/manuals/EN-UserMan%20%20OW-ENV%20Sensor%20v13.pdf
 	"7E": vocab.DeviceTypeMultisensor,
 }
 
@@ -33,37 +69,71 @@ var AttrVocab = map[string]string{
 	"DeviceName": vocab.VocabName,
 	"HostName":   vocab.VocabHostname,
 	"Version":    vocab.VocabSoftwareVersion,
-	// Exclude/ignore the following attributes as they are chatty and not useful
-	"BarometricPressureHg": "",
-	"Counter1":             "",
-	"Counter2":             "",
-	"DateTime":             "",
-	"DewPoint":             "",
-	"HeatIndex":            "",
-	"Looptime":             "",
-	"PollCount":            "",
-	"PrimaryValue":         "",
-	"RawData":              "",
+	// Exclude/ignore the following attributes as they are chatty or not useful
+	"BarometricPressureHg":                           "",
+	"BarometricPressureHgHighAlarmState":             "",
+	"BarometricPressureHgHighAlarmValue":             "",
+	"BarometricPressureHgHighConditionalSearchState": "",
+	"BarometricPressureHgLowAlarmState":              "",
+	"BarometricPressureHgLowAlarmValue":              "",
+	"BarometricPressureHgLowConditionalSearchState":  "",
+	"BarometricPressureMbHighConditionalSearchState": "",
+	"BarometricPressureMbLowConditionalSearchState":  "",
+	"Counter1":                              "",
+	"Counter2":                              "",
+	"DateTime":                              "",
+	"DewPointHighConditionalSearchState":    "",
+	"DewPointLowConditionalSearchState":     "",
+	"HeatIndexHighConditionalSearchState":   "",
+	"HeatIndexLowConditionalSearchState":    "",
+	"Humidex":                               "",
+	"HumidexHighAlarmState":                 "",
+	"HumidexHighConditionalSearchState":     "",
+	"HumidexLowAlarmState":                  "",
+	"HumidexLowConditionalSearchState":      "",
+	"HumidityHighConditionalSearchState":    "",
+	"HumidityLowConditionalSearchState":     "",
+	"LightHighConditionalSearchState":       "",
+	"LightLowConditionalSearchState":        "",
+	"TemperatureHighConditionalSearchState": "",
+	"TemperatureLowConditionalSearchState":  "",
+	"PollCount":                             "",
+	"PrimaryValue":                          "",
+	"RawData":                               "",
 }
 
 // SensorTypeVocab maps OWServer sensor names to IoT vocabulary
 var SensorTypeVocab = map[string]struct {
-	name     string
-	dataType string
-	decimals int // number of decimals accuracy for this value
+	sensorType string // sensor type from vocabulary
+	name       string
+	dataType   string
+	decimals   int // number of decimals accuracy for this value
 }{
 	// "BarometricPressureHg": vocab.PropNameAtmosphericPressure, // unit Hg
-	"BarometricPressureMb": {name: vocab.VocabAtmosphericPressure, dataType: vocab.WoTDataTypeNumber, decimals: 0}, // unit Mb
-	//"DewPoint":             {name: vocab.VocabDewpoint, dataType: vocab.WoTDataTypeNumber, decimals: 1},
-	//"HeatIndex":            {name: vocab.VocabHeatIndex, dataType: vocab.WoTDataTypeNumber, decimals: 1},
-	"Humidity":        {name: vocab.VocabHumidity, dataType: vocab.WoTDataTypeNumber, decimals: 0},
-	"Humidex":         {name: vocab.VocabHumidex, dataType: vocab.WoTDataTypeNumber, decimals: 1},
-	"Light":           {name: vocab.VocabLuminance, dataType: vocab.WoTDataTypeNumber, decimals: 0},
-	"RelayState":      {name: vocab.VocabRelay, dataType: vocab.WoTDataTypeBool, decimals: 0},
-	"Temperature":     {name: vocab.VocabTemperature, dataType: vocab.WoTDataTypeNumber, decimals: 1},
-	"VoltageChannel1": {name: "VoltageChannel1", dataType: vocab.WoTDataTypeNumber, decimals: 1},
-	"VoltageChannel2": {name: "VoltageChannel2", dataType: vocab.WoTDataTypeNumber, decimals: 1},
-	"VoltageChannel3": {name: "VoltageChannel3", dataType: vocab.WoTDataTypeNumber, decimals: 1},
+	"BarometricPressureMb":               {sensorType: vocab.VocabAtmosphericPressure, name: "Atmospheric Pressure", dataType: vocab.WoTDataTypeNumber, decimals: 0}, // unit Mb
+	"BarometricPressureMbHighAlarmState": {sensorType: vocab.VocabAlarmState, name: "Pressure High Alarm", dataType: vocab.WoTDataTypeBool},
+	"BarometricPressureMbLowAlarmState":  {sensorType: vocab.VocabAlarmState, name: "Pressure Low Alarm", dataType: vocab.WoTDataTypeBool},
+	"DewPoint":                           {sensorType: vocab.VocabDewpoint, name: "Dew point", dataType: vocab.WoTDataTypeNumber, decimals: 1},
+	"Health":                             {sensorType: "health", name: "Health 0-7", dataType: vocab.WoTDataTypeNumber},
+	"HeatIndex":                          {sensorType: vocab.VocabHeatIndex, name: "Heat Index", dataType: vocab.WoTDataTypeNumber, decimals: 1},
+	"Humidity":                           {sensorType: vocab.VocabHumidity, name: "Humidity", dataType: vocab.WoTDataTypeNumber, decimals: 0},
+	"HumidityHighAlarmState":             {sensorType: vocab.VocabAlarmState, name: "Humidity High Alarm", dataType: vocab.WoTDataTypeBool},
+	"HumidityLowAlarmState":              {sensorType: vocab.VocabAlarmState, name: "Humidity Low Alarm", dataType: vocab.WoTDataTypeBool},
+	"Light":                              {sensorType: vocab.VocabLuminance, name: "Luminance", dataType: vocab.WoTDataTypeNumber, decimals: 0},
+	"RelayState":                         {sensorType: vocab.VocabRelay, name: "Relay State", dataType: vocab.WoTDataTypeBool, decimals: 0},
+	"Temperature":                        {sensorType: vocab.VocabTemperature, name: "Temperature", dataType: vocab.WoTDataTypeNumber, decimals: 1},
+	"TemperatureHighAlarmState":          {sensorType: vocab.VocabAlarmState, name: "Temperature High Alarm", dataType: vocab.WoTDataTypeBool},
+	"TemperatureLowAlarmState":           {sensorType: vocab.VocabAlarmState, name: "Temperature Low Alarm", dataType: vocab.WoTDataTypeBool},
+}
+
+// ActuatorTypeVocab maps OWServer names to IoT vocabulary
+var ActuatorTypeVocab = map[string]struct {
+	actuatorType string // sensor type from vocabulary
+	title        string
+	dataType     string
+}{
+	// "BarometricPressureHg": vocab.PropNameAtmosphericPressure, // unit Hg
+	"Relay": {actuatorType: vocab.VocabRelay, title: "Relay", dataType: vocab.WoTDataTypeBool},
 }
 
 // UnitNameVocab maps OWServer unit names to IoT vocabulary
@@ -74,7 +144,7 @@ var UnitNameVocab = map[string]string{
 	"Fahrenheit":              vocab.UnitNameFahrenheit,
 	"InchesOfMercury":         vocab.UnitNameMercury,
 	"Lux":                     vocab.UnitNameLux,
-	"#":                       vocab.UnitNameCount,
+	"//":                      vocab.UnitNameCount,
 	"Volt":                    vocab.UnitNameVolt,
 }
 
@@ -100,14 +170,17 @@ type XMLNode struct {
 	Units       string `xml:"Units,attr"`
 }
 
-// OneWireAttr with info on each node attribute
+// OneWireAttr with info on each node attribute, property, event or action
 type OneWireAttr struct {
-	Name     string
-	Unit     string
-	Writable bool
-	Value    string
-	IsSensor bool   // sensors emit events on change
-	DataType string // vocab data type, "string", "number", "boolean"
+	ID         string // attribute raw instance ID
+	Name       string // attribute title for humans
+	VocabType  string // attribute type from vocabulary, if any, eg 'temperature', ...
+	Unit       string
+	Writable   bool
+	Value      string
+	IsActuator bool
+	IsSensor   bool   // sensors emit events on change
+	DataType   string // vocab data type, "string", "number", "boolean", ""
 }
 
 // OneWireNode with info on each node
@@ -117,7 +190,7 @@ type OneWireNode struct {
 	NodeID      string // ROM ID
 	Name        string
 	Description string
-	Attr        map[string]OneWireAttr // attribute by name
+	Attr        map[string]OneWireAttr // attribute by ID
 }
 
 // Apply the vocabulary to the name
@@ -128,19 +201,6 @@ func applyVocabulary(name string, vocab map[string]string) (vocabName string, ha
 		vocabName = name
 	}
 	return vocabName, hasName
-}
-
-// LookupEdsName returns the EDS name of a sensor from the vocabulary name.
-// If the name is not a vocabulary name then return the original name.
-// intended for executing an action or writing a configuration.
-// @param name is the standardized vocabulary for the property or sensor name
-func LookupEdsName(name string) string {
-	for edsName, sensorInfo := range SensorTypeVocab {
-		if sensorInfo.name == name {
-			return edsName
-		}
-	}
-	return name
 }
 
 // Discover any EDS OWServer ENet-2 on the local network for 3 seconds
@@ -213,6 +273,7 @@ func ParseOneWireNodes(
 	// todo: find a better place for this
 	if isRootNode {
 		owAttr := OneWireAttr{
+			ID:       vocab.VocabLatency,
 			Name:     vocab.VocabLatency,
 			Value:    fmt.Sprintf("%.2f", latency.Seconds()),
 			Unit:     "sec",
@@ -225,40 +286,58 @@ func ParseOneWireNodes(
 		// if the xmlnode has no subnodes then it is a parameter describing the current node
 		if len(node.Nodes) == 0 {
 			// standardize the naming of properties and property types
-			writable := (strings.ToLower(node.Writable) == "true")
-			attrName := node.XMLName.Local
-			sensorInfo, isSensor := SensorTypeVocab[attrName]
-			decimals := -1 // -1 means no conversion
+			writable := strings.ToLower(node.Writable) == "true"
+			attrID := node.XMLName.Local
+			title := attrID
+			actuatorInfo, isActuator := ActuatorTypeVocab[attrID]
+			sensorInfo, isSensor := SensorTypeVocab[attrID]
+			vocabType := "" // standardized type, if known
+			decimals := -1  // -1 means no conversion
 			dataType := vocab.WoTDataTypeString
-			if isSensor {
-				// this is a known sensor type. (writable sensors are actuators)
-				attrName = sensorInfo.name
+
+			if isActuator {
+				// this is a known actuator type
+				title = actuatorInfo.title
+				vocabType = actuatorInfo.actuatorType
+				dataType = actuatorInfo.dataType
+			} else if isSensor {
+				// this is a known sensor type
+				title = sensorInfo.name
+				vocabType = sensorInfo.sensorType
 				decimals = sensorInfo.decimals
 				dataType = sensorInfo.dataType
 			} else {
-				// this is an attribute. writable attributes are configuration
-				attrName, _ = applyVocabulary(attrName, AttrVocab)
+				// this is an attribute, or configuration when writable
+				vocabType, _ = applyVocabulary(attrID, AttrVocab)
 			}
-			if attrName != "" {
+			// ignore values erased in the vocabulary
+			if vocabType != "" {
 				unit, _ := applyVocabulary(node.Units, UnitNameVocab)
 				valueStr := string(node.Content)
 				valueFloat, err := strconv.ParseFloat(valueStr, 32)
-				// rounding of sensor values to decimals
-				if err == nil && decimals >= 0 {
-					ratio := math.Pow(10, float64(decimals))
-					valueFloat = math.Round(valueFloat*ratio) / ratio
-					valueStr = strconv.FormatFloat(valueFloat, 'f', decimals, 32)
+				// if it can be parsed then it is a number
+				if err == nil && dataType != vocab.WoTDataTypeBool {
+					// rounding of sensor values to decimals
+					if decimals >= 0 {
+						ratio := math.Pow(10, float64(decimals))
+						valueFloat = math.Round(valueFloat*ratio) / ratio
+						valueStr = strconv.FormatFloat(valueFloat, 'f', decimals, 32)
+					}
+					dataType = vocab.WoTDataTypeNumber
 				}
 
 				owAttr := OneWireAttr{
-					Name:     attrName,
-					Value:    valueStr,
-					Unit:     unit,
-					IsSensor: isSensor,
-					Writable: writable,
-					DataType: dataType,
+					ID:         attrID,
+					Name:       title,
+					VocabType:  vocabType,
+					Value:      valueStr,
+					Unit:       unit,
+					IsSensor:   isSensor,
+					IsActuator: isActuator,
+					Writable:   writable,
+					DataType:   dataType,
 				}
-				owNode.Attr[owAttr.Name] = owAttr
+				owNode.Attr[owAttr.ID] = owAttr
 				// Family is used to determine device type, default is gateway
 				if node.XMLName.Local == "Family" {
 					deviceType := deviceTypeMap[owAttr.Value]

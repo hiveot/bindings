@@ -6,7 +6,6 @@ import (
 
 	"github.com/hiveot/bindings/owserver/internal/eds"
 	"github.com/hiveot/hub/api/go/vocab"
-
 	"github.com/hiveot/hub/lib/thing"
 )
 
@@ -22,36 +21,47 @@ func (binding *OWServerBinding) CreateTDFromNode(node *eds.OneWireNode) (tdoc *t
 	thingID := node.NodeID
 
 	tdoc = thing.NewTD(thingID, node.Name, node.DeviceType)
-	tdoc.AddProperty(vocab.VocabDescription, node.Description, vocab.WoTDataTypeString)
 	tdoc.UpdateTitleDescription(node.Name, node.Description)
 
 	// Map node attribute to Thing properties
 	for attrName, attr := range node.Attr {
-		prop := tdoc.AddProperty(attrName, attr.Name, attr.DataType)
-		prop.Unit = attr.Unit
-
 		// sensors are added as both properties and events
 		if attr.IsSensor {
 			// sensors emit events
 			eventID := attrName
-			evAff := tdoc.AddEvent(eventID, attrName, attrName, "")
-			// TODO: only add data schema if the event carries a value
-			evAff.Data = &thing.DataSchema{
-				Type: attr.DataType,
-				Unit: prop.Unit,
+			title := attr.Name
+			evAff := tdoc.AddEvent(eventID, attr.VocabType, title, "")
+			// only add data schema if the event carries a value
+			if attr.DataType != vocab.WoTDataTypeNone {
+				evAff.Data = &thing.DataSchema{
+					Type: attr.DataType,
+					Unit: attr.Unit,
+				}
+			}
+			evAff.InitialValue = attr.Value
+			if attr.Unit != "" {
+				evAff.InitialValue += " " + attr.Unit
 			}
 
-			// writable sensors are actuators and can be triggered with actions
-			if attr.Writable {
-				actionID := attrName
-				actionAff := tdoc.AddAction(actionID, attrName, attrName, "")
-				// TODO: only add input schema if the action takes a value
+		} else if attr.IsActuator {
+			actionID := attrName
+			actionAff := tdoc.AddAction(actionID, attr.VocabType, attr.Name, "")
+
+			// only add data schema if the action accepts parameters
+			if attr.DataType != vocab.WoTDataTypeNone {
 				actionAff.Input = &thing.DataSchema{
 					Type: attr.DataType,
-					Unit: prop.Unit,
+					Unit: attr.Unit,
 				}
 			}
 		} else {
+			// TODO: map properties to type where possible
+			prop := tdoc.AddProperty(attrName, "", attr.Name, attr.DataType)
+			prop.Unit = attr.Unit
+			prop.InitialValue = attr.Value
+			if attr.Unit != "" {
+				prop.InitialValue += " " + attr.Unit
+			}
 			// non-sensors are attributes. Writable attributes are configuration.
 			if attr.Writable {
 				prop.ReadOnly = false
@@ -79,7 +89,7 @@ func (binding *OWServerBinding) PublishThings(nodes []*eds.OneWireNode) (err err
 	for _, node := range nodes {
 		td := binding.CreateTDFromNode(node)
 		tdDoc, _ := json.Marshal(td)
-		err2 := binding.pubsub.PubTD(ctx, td.ID, td.AtType, tdDoc)
+		err2 := binding.pubsub.PubTD(ctx, td.ID, tdDoc)
 		if err2 != nil {
 			err = err2
 		}

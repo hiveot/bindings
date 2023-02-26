@@ -15,7 +15,7 @@ import (
 func (binding *OWServerBinding) HandleActionRequest(action *thing.ThingValue) {
 	var attr eds.OneWireAttr
 	logrus.Infof("Pub=%s, Thing=%s. Action=%s Value=%s",
-		action.PublisherID, action.ThingID, action.Name, action.ValueJSON)
+		action.PublisherID, action.ThingID, action.ID, action.ValueJSON)
 
 	// If the action name is converted to a standardized vocabulary then convert the name
 	// to the EDS writable property name.
@@ -24,20 +24,20 @@ func (binding *OWServerBinding) HandleActionRequest(action *thing.ThingValue) {
 	deviceID := action.ThingID
 
 	// lookup the action name used by the EDS
-	edsName := eds.LookupEdsName(action.Name)
+	edsName := action.ID
 
 	// determine the value. Booleans are submitted as integers
 	actionValue := action.ValueJSON
 
 	node, found := binding.nodes[deviceID]
 	if found {
-		attr, found = node.Attr[action.Name]
+		attr, found = node.Attr[action.ID]
 	}
 	if !found {
-		logrus.Warningf("action '%s' on unknown attribute '%s'", action.Name, attr.Name)
+		logrus.Warningf("action '%s' on unknown attribute '%s'", action.ID, attr.Name)
 		return
 	} else if !attr.Writable {
-		logrus.Warningf("action '%s' on read-only attribute '%s'", action.Name, attr.Name)
+		logrus.Warningf("action '%s' on read-only attribute '%s'", action.ID, attr.Name)
 		return
 	}
 	// TODO: type conversions needed?
@@ -48,13 +48,13 @@ func (binding *OWServerBinding) HandleActionRequest(action *thing.ThingValue) {
 
 	// read the result
 	time.Sleep(time.Second)
-	_ = binding.RefreshPropertyValues(true)
+	_ = binding.RefreshPropertyValues()
 
 	// Writing the EDS is slow, retry in case it was missed
 	time.Sleep(time.Second * 4)
-	_ = binding.RefreshPropertyValues(true)
+	_ = binding.RefreshPropertyValues()
 
 	if err != nil {
-		logrus.Warningf("action '%s' failed: %s", action.Name, err)
+		logrus.Warningf("action '%s' failed: %s", action.ID, err)
 	}
 }
