@@ -2,6 +2,7 @@
 // This consists of the TD itself with properties
 
 import { DataType } from "./vocabulary.js"
+import {getEnumMemberName} from "zwave-js";
 
 export class DataSchema extends Object {
     public constructor(init?:Partial<DataSchema>) {
@@ -59,7 +60,45 @@ export class DataSchema extends Object {
 
     // Boolean value to indicate whether a property interaction / value is write-only (=true) or not (=false)
     public writeOnly: boolean = false
+
+    // Initial value at time of creation
+    // this is always a string with optionally a unit
+    // not part of the WoT definition but useful for testing and debugging
+    public initialValue: string | undefined = undefined
+
+    // Enumeration table to lookup the value or key
+    private enumTable: Object|undefined = undefined
+
+    // Change the property into a writable configuration
+    SetAsConfiguration(): DataSchema {
+        this.readOnly = false
+        return this
+    }
+
+    // Add a list of enumerations to the schema.
+    // This changes the schema to DataTypeString, fills in the enum array of strings, and
+    // sets initialValue to the converted string.
+    // enumeration is a map from enum values to names and vice-versa
+    SetAsEnum(enumeration: Object, initialValue: number): DataSchema {
+        this.initialValue = getEnumMemberName(enumeration, initialValue)
+        this.enumTable = enumeration
+        let keys = Object.values(enumeration)
+        this.enum = keys.filter((key:any)=>{
+            let isName = (!Number.isFinite(key))
+            return isName
+            }
+        )
+        return this
+    }
+
+    // Set the description and return this
+    SetDescription(description:string): DataSchema {
+        this.description = description
+        return this
+    }
 }
+
+
 
 export class InteractionAffordance extends Object {
     // Unique name of the affordance, eg: property, event or action name
@@ -101,13 +140,26 @@ export class ActionAffordance extends InteractionAffordance {
     //   WoTProperties?: Map<string, string>,
     //   WoTRequired?: boolean,
     // }>()
+
+    // Create an action affordance instance with a schema for its input, if any
+    constructor(dataSchema?:DataSchema) {
+        super();
+        this.input = dataSchema
+    }
 }
 
 /** Thing Description Event Affordance
  */
 export class EventAffordance extends InteractionAffordance {
     // Data schema of the event instance message, eg the event payload
-    public data?: DataSchema = undefined
+    public data?: DataSchema
+
+    // Create an event affordance instance with a schema for its data, if any
+    constructor(dataSchema?:DataSchema) {
+        super();
+        this.data = dataSchema
+    }
+
 }
 
 /** Thing Description property affordance
@@ -119,10 +171,6 @@ export class PropertyAffordance extends DataSchema {
 
     // id is the property ID in the map, so it is available when the properties are provided as an array
     id: string = ""
-
-    // Initial value at time of TD creation
-    // not part of the WoT definition but useful for testing and debugging
-    public initialValue: any | undefined = undefined
 
     // Optional nested properties. Map with PropertyAffordance
     // used when a property has multiple instances, each with their own name
@@ -193,12 +241,14 @@ export class ThingTD extends Object {
     // @param actionType one of the action types from the vocabulary
     // @param title is the short display title of the action.
     // @param description optional detailed description of the action
-    AddAction(id: string, actionType: string, title: string, description?: string): ActionAffordance {
+    // @param input with optional dataschema of the action input data
+    AddAction(id: string, actionType: string, title: string, description?: string, input?:DataSchema): ActionAffordance {
         let action = new ActionAffordance()
         action.id = id;
         action["@type"] = actionType
         action.title = title
         action.description = description
+        action.input = input
         this.actions[id] = action;
         return action
     }
@@ -211,12 +261,14 @@ export class ThingTD extends Object {
     // @param eventType one of the event types from the vocabulary
     // @param title is the short display title of the action.
     // @param description optional detailed description of the action
-    AddEvent(id: string, eventType:string, title: string, description?: string): EventAffordance {
+    // @param dataSchema optional event data schema
+    AddEvent(id: string, eventType:string, title: string, description?: string, dataSchema?:DataSchema): EventAffordance {
         let ev = new EventAffordance()
         ev.id = id;
         ev["@type"] = eventType
         ev.title = title ? title : id;
         ev.description = description
+        ev.data = dataSchema
         this.events[id] = ev;
         return ev
     }
@@ -226,34 +278,41 @@ export class ThingTD extends Object {
     // By default this property is read-only. (eg an attribute)
     //
     // @param id is the instance ID under which it is stored in the property affordance map.
+    // @param propTypeName is the vocabulary defined property type or undefined when not defined
     // @param title is the title used in the property. Leave empty to use the name.
     // @param dataType is the type of data the property holds, DataTypeNumber, ..Object, ..Array, ..String, ..Integer, ..Boolean or null
-    // @param initialValue the value at time of creation
-    AddProperty(id: string, title: string | undefined, dataType: DataType, initialValue: any): PropertyAffordance {
+    // @param initialValue the value at time of creation, for testing and debugging
+    AddProperty(id: string, propTypeName: string|undefined, title: string | undefined, dataType: DataType, initialValue?: any): PropertyAffordance {
         let prop = new PropertyAffordance()
         prop.id = id;
+        prop["@type"] = propTypeName
         prop.type = dataType;
         prop.title = title ? title : id;
         prop.readOnly = true;
-        prop.initialValue = initialValue;
+        if (initialValue != undefined) {
+            prop.initialValue = String(initialValue);
+        }
         this.properties[id] = prop;
         return prop
     }
+
 
     // AddPropertyIf only adds the property if the first parameter is not undefined 
     //
     // @param initialValue add the attribute if the initial value is not undefined
     // @param id is the instance ID under which it is stored in the property affordance map.
+    // @param propType is the vocabulary defined property type or "" when not defined
     // @param title is the title used in the property. Leave empty to use the name.
     // @param dataType is the type of data the property holds, DataTypeNumber, ..Object, ..Array, ..String, ..Integer, ..Boolean or null
     AddPropertyIf(
         initialValue: any,
         id: string,
+        propType: string,
         title: string | undefined,
         dataType: DataType): PropertyAffordance | undefined {
 
         if (initialValue != undefined) {
-            return this.AddProperty(id, title, dataType, initialValue)
+            return this.AddProperty(id, propType, title, dataType, initialValue)
         }
         return undefined
     }

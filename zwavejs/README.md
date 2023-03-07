@@ -24,6 +24,8 @@ While capnp serialization and rpc is desirable, the nodejs tools for this are ol
 
 This needs:
 * golang v1.18+
+* typescript 4.9.5  (npm install -g typescript)
+* yarn
 * nodejs v18+
 * typescript compiler v4.9+ (tsc, included in snap's node)
 * make tools

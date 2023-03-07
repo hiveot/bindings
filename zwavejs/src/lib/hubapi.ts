@@ -10,7 +10,7 @@ global.WebSocket = ws;
 
 // import typescript files with js extension because node import fails without
 // <rant>its 2022, why do we still have to deal with these idiosyncrasies?</rant>
-import * as lw from "../binding/startWasm.js";
+import * as lw from "./startWasm.js";
 
 
 // HubAPI is a convenience typescript wrapper around the golang wasm Hub connection API

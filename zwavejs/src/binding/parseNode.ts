@@ -1,9 +1,8 @@
 import {
-    getEnumMemberName,
     NodeStatus,
     NodeType,
     TranslatedValueID,
-    ValueMetadata,
+    ValueMetadataAny,
     ValueMetadataBoolean,
     ValueMetadataNumeric,
     ValueMetadataString,
@@ -13,37 +12,29 @@ import {
 } from "zwave-js";
 import {CommandClasses, InterviewStage} from '@zwave-js/core';
 import {ActionAffordance, DataSchema, EventAffordance, PropertyAffordance, ThingTD} from "../lib/thing.js";
-import {DataType, VocabManufacturer, VocabSoftwareVersion} from "../lib/vocabulary.js";
+import {DataType, ManageTypeHealthCheck, ManageTypePing, ManageTypeRefresh, PropTypes,} from "../lib/vocabulary.js";
 import type {ZWAPI} from "./zwapi.js";
+import {getPropType} from "./getPropType.js";
+import {logVid} from "./logvid.js";
+import {getPropID} from "./getPropID.js";
+import {getVidType} from "./getVidType.js";
 
 // Fixed events emitted by a node
 export const EventNameAlive = "alive"
-export const EventNameInclusion = "inclusion"
-
-// map of commandclass to identification
-type TypeInfo = {
-    isAttr?: boolean;
-    isConfig?: boolean;
-    isEvent?: boolean;
-};
-const CCIDMap = new Map<CommandClasses, TypeInfo>([
-    [CommandClasses["Alarm Sensor"], {}],
-    // Central Scene notification => event
-    [CommandClasses["Central Scene"], {isEvent: true}],
-    // todo
-])
 
 
 // Add the zwave value data to the TD as an action
 function addAction(td: ThingTD, node: ZWaveNode, vid: TranslatedValueID, actionID: string): ActionAffordance {
     let vidMeta = node.getValueMetadata(vid)
-    let action = td.AddAction(actionID, "", DataType.Unknown)
 
-    // move title and description. No need to duplicate
+    // actions without input have no schema. How to identify these?
+    let schema = new DataSchema()
+    SetDataSchema(schema, node, vid)
+    let action = td.AddAction(actionID, "",
+        schema.title || actionID, schema.description, schema)
+
     if (action.input) {
-        SetDataSchema(action.input, node, vid)
-        action.title = action.input?.title
-        action.description = action.input?.description
+        // The VID title, description belongs to the action, not the schema
         action.input.title = undefined
         action.input.description = undefined
         action.input.readOnly = false
@@ -52,20 +43,27 @@ function addAction(td: ThingTD, node: ZWaveNode, vid: TranslatedValueID, actionI
 }
 
 // Add the zwave value data to the TD as an attribute property
-function addAttribute(td: ThingTD, node: ZWaveNode, vid: TranslatedValueID, propID: string, initialValue: any): PropertyAffordance {
-    let vidMeta = node.getValueMetadata(vid)
-    let prop = td.AddProperty(propID, "", DataType.Unknown, initialValue)
+function addAttribute(td: ThingTD, node: ZWaveNode, vid: TranslatedValueID, propID: string): PropertyAffordance {
+
+    let propTypeName: string | undefined
+    let propType = getPropType(node, vid)
+    if (propType) {
+        propTypeName = propType.typeName
+    }
+    let prop = td.AddProperty(propID, propTypeName, "", DataType.Unknown)
     // SetDataSchema also sets the title and data type
     SetDataSchema(prop, node, vid)
     return prop
 }
 
-// Add the zwave value data to the TD as a configuration property
-function addConfig(td: ThingTD, node: ZWaveNode, vid: TranslatedValueID, propID: string, initialValue: any): PropertyAffordance {
-    let paramMap = node.deviceConfig?.paramInformation
-    let paramNr = vid.property
-    let vidMeta = node.getValueMetadata(vid)
-    let prop = td.AddProperty(propID, "", DataType.Unknown, initialValue)
+// Add the zwave VID to the TD as a configuration property
+function addConfig(td: ThingTD, node: ZWaveNode, vid: TranslatedValueID, propID: string): PropertyAffordance {
+    let propTypeName: string | undefined
+    let propType = getPropType(node, vid)
+    if (propType) {
+        propTypeName = propType.typeName
+    }
+    let prop = td.AddProperty(propID, propTypeName, "", DataType.Unknown)
     prop.readOnly = false
     // SetDataSchema also sets the title and data type
     SetDataSchema(prop, node, vid)
@@ -74,18 +72,19 @@ function addConfig(td: ThingTD, node: ZWaveNode, vid: TranslatedValueID, propID:
 
 }
 
-// Add the zwave value data to the TD as an event
+// Add the zwave VID to the TD as an event
 function addEvent(td: ThingTD, node: ZWaveNode, vid: TranslatedValueID, eventID: string): EventAffordance {
-    let vidMeta = node.getValueMetadata(vid)
-    let ev = td.AddEvent(eventID, "", DataType.Unknown)
+
+    let schema = new DataSchema()
+    SetDataSchema(schema, node, vid)
+
+    let ev = td.AddEvent(eventID, "", schema.title || eventID, schema.description, schema)
 
     if (ev.data) {
-        if (ev.data) {
-            ev.data.description = vid.propertyName
-        }
-        SetDataSchema(ev.data, node, vid)
-        ev.title = ev.data?.title
-        ev.description = ev.data?.description
+        // if (ev.data) {
+        //     ev.data.description = vid.propertyName
+        // }
+        // SetDataSchema(ev.data, node, vid)
         ev.data.title = undefined
         ev.data.description = undefined
     }
@@ -95,142 +94,17 @@ function addEvent(td: ThingTD, node: ZWaveNode, vid: TranslatedValueID, eventID:
 
 
 // getDeviceType returns the device type of the node in the HiveOT vocabulary
-// this is based on the device class name. eg 'Binary Switch' and will be converted to the HiveOT vocabulary
+// this is based on the generic device class name. eg 'Binary Switch' and will be converted
+// to the HiveOT vocabulary.
 export function getDeviceType(node: ZWaveNode): string {
     let deviceClassGeneric = node.deviceClass?.generic.label;
-    let deviceClassBasic = node.deviceClass?.basic.label;
-    let deviceClassSpecific = node.deviceClass?.specific.label;
     let deviceType: string;
 
     deviceType = deviceClassGeneric ? deviceClassGeneric : node.name ? node.name : "n/a";
-    // device class basic just says 'static controller' or 'routing slave'
-    // if (node.deviceClass?.basic.label) {
-    //     deviceType = deviceClassBasic ? deviceClassBasic : deviceType;
-    // }
-    // specific doesn't add anything useful, sometimes the opposite (Routing Multilevel Sensor)
-    // if (node.deviceClass?.specific.label) {
-    //     deviceType = deviceClassSpecific ? deviceClassSpecific : deviceType;
-    // }
 
     // TODO: map the zwave CC to the HiveOT vocabulary
 
     return deviceType
-}
-
-// getPropID returns the property instance ID for identifying the property used in TD property map and events.
-export function getPropID(vid: TranslatedValueID, vidMeta: ValueMetadata): string {
-    // rules:
-    // 1. by default, use 'vid.propertyName'
-    // 2. append 'vid.propertyKey' if not undefined
-    // 3. append 'vid.endpoint' if not undefined
-    //
-    // let propName = vidMeta.label ? vidMeta.label : vid.propertyName || vid.commandClassName
-    let propID = vid.propertyName ? vid.propertyName : ""
-    if (vid.propertyKey) {
-        propID += "-"+ vid.propertyKey
-    }
-    if (vid.endpoint) {
-        propID += "-"+vid.endpoint
-    }
-    // if (vid.commandClass == CommandClasses.Configuration) {
-    //     propID = `${vid.property} - ${vidMeta.label}`
-    // }
-    return propID
-}
-
-// Determine whether the vid is a property, event or action
-// this returns 
-//  action: the vid is writable and not readable
-//  event: the vid is a readonly command CC ?
-//  attr: the vid is read-only, not an event, and has a value or default
-//  config: the vid is writable, not an action, and has a value or default
-//  undefined if the vid CC is deprecated or obsolete
-function getVidType(node: ZWaveNode, vid: TranslatedValueID): "action" | "event" | "config" | "attr" |undefined{
-    let vidMeta = node.getValueMetadata(vid)
-
-    switch (vid.commandClass) {
-        // While Basic Set is an action/event, we don't want to use it as this is just a fallback CC
-        case CommandClasses.Basic:
-        {
-            return vidMeta.writeable ? "action" : "event";
-            // return "attr"
-        }
-        //--- CC's for actions/actuator devices
-        case CommandClasses["Alarm Silence"]:
-        case CommandClasses["Barrier Operator"]:
-        case CommandClasses["Binary Switch"]:
-        case CommandClasses["Binary Toggle Switch"]:
-        case CommandClasses["Door Lock"] :
-        case CommandClasses["HRV Control"] :
-        case CommandClasses["Humidity Control Mode"] :
-        case CommandClasses["Indicator"] :
-        case CommandClasses["Multilevel Switch"] :
-        case CommandClasses["Simple AV Control"] :
-        case CommandClasses["Window Covering"]:
-        {
-            return vidMeta.writeable ? "action" : "event";
-        }
-
-        //-- CC's for data reporting devices
-        case CommandClasses["Authentication"]:
-        case CommandClasses["Binary Sensor"]:
-        case CommandClasses["Central Scene"]:
-        case CommandClasses["Entry Control"]:
-        case CommandClasses["Energy Production"]:
-        case CommandClasses["HRV Status"]:
-        case CommandClasses["Humidity Control Operating State"] :
-        case CommandClasses["Multilevel Sensor"]:
-        case CommandClasses.Meter:
-        case CommandClasses["Meter Table Monitor"]:
-        case CommandClasses.Notification:
-        case CommandClasses["Sound Switch"]:
-        case CommandClasses["Thermostat Fan State"]:
-        case CommandClasses["Thermostat Operating State"]: {
-            return "event"
-        }
-        //--- CC's for configuration or attributes
-        case CommandClasses["Anti-Theft"]:
-        case CommandClasses["Anti-Theft Unlock"]:
-        case CommandClasses["Color Switch"] :
-        case CommandClasses.Configuration:
-        case CommandClasses["Generic Schedule"]:
-        case CommandClasses["Humidity Control Setpoint"] :
-        case CommandClasses["Irrigation"]:
-        case CommandClasses["Meter Table Configuration"]:
-        case CommandClasses["Meter Table Push Configuration"]:
-        case CommandClasses["Schedule"]:
-        case CommandClasses["Scene Actuator Configuration"]:     // 1..255 scene IDs
-        case CommandClasses["Scene Controller Configuration"]:   // 1..255 scene IDs
-        case CommandClasses["Thermostat Fan Mode"]:
-        case CommandClasses["Thermostat Mode"] :
-        case CommandClasses["Thermostat Setpoint"]:
-        case CommandClasses["Thermostat Setback"]:
-        case CommandClasses["Tariff Table Configuration"]:
-        case CommandClasses["User Code"]: {
-            return vidMeta.writeable ? "config": "attr"
-        }
-
-        case CommandClasses["Wake Up"]: {
-            // wakeup interval is config, wakeup report is attr, wakeup notification is event
-            // FIXME: determine if this is a wakeup notification (event)
-            return vidMeta.writeable ? "config": "attr"
-        }
-
-        //--- deprecated CCs
-        case CommandClasses["All Switch"]:  //
-        case CommandClasses["Alarm Sensor"]:  // nodes also have Notification CC
-        {
-            return undefined
-        }
-    }
-
-    if (!vidMeta.readable) {
-        return vidMeta.writeable ? "action":"event"
-    }
-    if (vidMeta.writeable) {
-        return "config"
-    }
-    return "attr"
 }
 
 // parseNodeInfo convers a ZWave Node into a WoT TD document 
@@ -238,7 +112,10 @@ function getVidType(node: ZWaveNode, vid: TranslatedValueID): "action" | "event"
 // - convert zwave vocabulary to WoT/HiveOT vocabulary
 // - build a TD document containing properties, events and actions
 // - if this is the controller node, add controller attributes and actions
-export function parseNode(zwapi: ZWAPI, node: ZWaveNode): ThingTD {
+// @param zwapi:
+// @param node
+// @param vidLogFile: optional file handle to log VID info to CSV
+export function parseNode(zwapi: ZWAPI, node: ZWaveNode, vidLogFile?: number): ThingTD {
     let td: ThingTD;
 
     //--- Step 1: TD definition
@@ -246,7 +123,6 @@ export function parseNode(zwapi: ZWAPI, node: ZWaveNode): ThingTD {
     let deviceType = getDeviceType(node)
     let title = node.name || node.label || node.deviceConfig?.description || deviceID;
     let description = `${node.label} ${node.deviceConfig?.description} `;
-    let publisherID = "zwavejs";
 
     // if (node.deviceConfig) {
     //     description = node.deviceConfig.description
@@ -256,74 +132,68 @@ export function parseNode(zwapi: ZWAPI, node: ZWaveNode): ThingTD {
     //--- Step 2: Add read-only attributes that are common to many nodes
     // since none of these have standard property names, use the ZWave name instead.
     // these names must match those used in parseNodeValues()
-    td.AddPropertyIf(node.canSleep, "canSleep", "Device sleeps to conserve battery", DataType.Bool);
-    td.AddProperty("endpointCount", "Number of endpoints", DataType.Number, node.getEndpointCount());
-    td.AddPropertyIf(node.firmwareVersion, VocabSoftwareVersion, "", DataType.String);
-    td.AddPropertyIf(node.getHighestSecurityClass(), "highestSecurityClass", "", DataType.String);
-    td.AddPropertyIf(node.interviewAttempts, "interviewAttempts", "", DataType.Number);
+    td.AddPropertyIf(node.canSleep, "canSleep", "", "Device sleeps to conserve battery", DataType.Bool);
+    td.AddProperty("endpointCount", "", "Number of endpoints", DataType.Number, node.getEndpointCount().toString());
+    td.AddPropertyIf(node.firmwareVersion, "firmwareVersion", PropTypes.FirmwareVersion, "Device firmware version", DataType.String);
+    td.AddPropertyIf(node.getHighestSecurityClass(), "highestSecurityClass", "", "", DataType.String);
+    td.AddPropertyIf(node.interviewAttempts, "interviewAttempts", "Nr Interview Attemps", "", DataType.Number);
     if (node.interviewStage) {
-        td.AddProperty("interviewStage", "", DataType.String, node.interviewStage);
-        let interviewStageName =getEnumMemberName(InterviewStage, node.interviewStage)
-        td.AddProperty("interviewStageName", "", DataType.String, interviewStageName);
+        td.AddProperty("interviewStage", "", "Device Interview Stage", DataType.String)
+            .SetAsEnum(InterviewStage, node.interviewStage)
     }
-    td.AddPropertyIf(node.isListening, "isListening", "Device always listens", DataType.Bool);
-    td.AddPropertyIf(node.isSecure, "isSecure", "Device communicates securely with controller", DataType.Bool);
-    td.AddPropertyIf(node.isRouting, "isRouting", "Device support message routing/forwarding (if listening)", DataType.Bool);
-    td.AddPropertyIf(node.isControllerNode, "isControllerNode", "Device is a zwave controller", DataType.Bool);
-    td.AddPropertyIf(node.keepAwake, "keepAwake", "Device stays awake a bit longer before sending it to sleep", DataType.Bool);
-    td.AddPropertyIf(node.label, "label", "", DataType.String);
-    td.AddPropertyIf(node.manufacturerId, "manufacturerId", "Manufacturer ID", DataType.String);
-    td.AddPropertyIf(node.deviceConfig?.manufacturer, VocabManufacturer, "", DataType.String);
-    td.AddPropertyIf(node.maxDataRate, "maxDataRate", "Device maximum communication data rate", DataType.Number);
+    td.AddPropertyIf(node.isListening, "isListening", "", "Device always listens", DataType.Bool);
+    td.AddPropertyIf(node.isSecure, "isSecure", "", "Device communicates securely with controller", DataType.Bool);
+    td.AddPropertyIf(node.isRouting, "isRouting", "", "Device support message routing/forwarding (if listening)", DataType.Bool);
+    td.AddPropertyIf(node.isControllerNode, "isControllerNode", "", "Device is a zwave controller", DataType.Bool);
+    td.AddPropertyIf(node.keepAwake, "keepAwake", "", "Device stays awake a bit longer before sending it to sleep", DataType.Bool);
+    td.AddPropertyIf(node.label, "label", "", "", DataType.String);
+    td.AddPropertyIf(node.manufacturerId, "manufacturerId", "", "Manufacturer ID", DataType.String);
+    td.AddPropertyIf(node.deviceConfig?.manufacturer, PropTypes.Manufacturer, PropTypes.Manufacturer, PropTypes.Manufacturer, DataType.String);
+    td.AddPropertyIf(node.maxDataRate, "maxDataRate", "", "Device maximum communication data rate", DataType.Number);
     if (node.nodeType) {
-        td.AddProperty("nodeType", "", DataType.String, node.nodeType);
-        let nodeTypeName = getEnumMemberName(NodeType, node.nodeType)
-        td.AddProperty("nodeTypeName", "", DataType.String, nodeTypeName);
+        td.AddProperty("nodeType", "", "ZWave node type", DataType.Number)
+            .SetAsEnum(NodeType, node.nodeType)
     }
-    td.AddPropertyIf(node.productId, "productId", "", DataType.Number);
-    td.AddPropertyIf(node.productType, "productType", "", DataType.Number);
-    td.AddPropertyIf(node.protocolVersion, "protocolVersion", "", DataType.String);
-    td.AddPropertyIf(node.sdkVersion, "sdkVersion", "", DataType.String);
+    td.AddPropertyIf(node.productId, "productId", "", "", DataType.Number);
+    td.AddPropertyIf(node.productType, "productType", PropTypes.ProductName, "", DataType.Number);
+    td.AddPropertyIf(node.protocolVersion, "protocolVersion", "", "ZWave protocol version", DataType.String);
+    td.AddPropertyIf(node.sdkVersion, "sdkVersion", "", "", DataType.String);
     if (node.status) {
-        td.AddProperty("status", "status ID", DataType.Number, node.status);
-        let statusName = getEnumMemberName(NodeStatus, node.status)
-        td.AddProperty("statusName", "status", DataType.String, statusName);
+        td.AddProperty("status", "", "Node Awake or Asleep Status", DataType.Number)
+            .SetAsEnum(NodeStatus, node.status)
     }
-    td.AddPropertyIf(node.supportedDataRates, "supportedDataRates", "", DataType.String);
-    td.AddPropertyIf(node.userIcon, "userIcon", "", DataType.String);
+    td.AddPropertyIf(node.supportedDataRates, "supportedDataRates", "", "ZWave Data Speed", DataType.String);
+    td.AddPropertyIf(node.userIcon, "userIcon", "", "", DataType.String);
     if (node.zwavePlusNodeType) {
-        td.AddProperty("zwavePlusNodeType", "", DataType.Number, node.zwavePlusNodeType);
-        let nodeTypeName = getEnumMemberName(ZWavePlusNodeType, node.zwavePlusNodeType)
-        td.AddProperty("zwavePlusNodeTypeName", "", DataType.String, nodeTypeName);
+        td.AddProperty("zwavePlusNodeType", "", "", DataType.Number)
+            .SetAsEnum(ZWavePlusNodeType, node.zwavePlusNodeType)
     }
-    td.AddPropertyIf(node.zwavePlusRoleType, "zwavePlusRoleType", "", DataType.Number);
     if (node.zwavePlusRoleType) {
-        let roleTypeName = getEnumMemberName(ZWavePlusRoleType, node.zwavePlusRoleType)
-        td.AddProperty("zwavePlusRoleTypeName", "", DataType.String, roleTypeName);
+        td.AddProperty("zwavePlusRoleType", "", "ZWave Controller or Slave", DataType.Number)
+            .SetAsEnum(ZWavePlusRoleType, node.zwavePlusRoleType)
     }
-    td.AddPropertyIf(node.zwavePlusVersion, "zwavePlusVersion", "", DataType.Number);
+    td.AddPropertyIf(node.zwavePlusVersion, "zwavePlusVersion", "", "", DataType.Number);
 
-    //--- Step 3: add node state events and actions
-    // FIXME: These names must match the event emitter in binding.ts
-    td.AddEvent(EventNameInclusion, "inclusion","Node interview status", "")
-     .data = new DataSchema({
-        title:"Progress",
-        type: DataType.String,
-        enum: ["interview started", "interview completed", "interview failed"]
-    })
+    //
+    // td.AddPropertyIf(EventNameAlive, EventTypeStatus,"Node alive status","",
+    //   new DataSchema({
+    //     title:"Status",
+    //     type: DataType.String,
+    //     enum: ["Unknown", "Asleep", "Awake", "Dead", "Alive"],
+    //     initialValue: getEnumMemberName(NodeStatus, node.status)
+    //  }))
 
-    td.AddEvent(EventNameAlive, EventNameAlive,"Node alive status")
-     .data = new DataSchema({
-        title:"Status",
-        type: DataType.String,
-        enum: ["sleeping", "awake", "alive", "dead"]
-     })
-
-    // general purpose node actions
-    // FIXME: These names must match the action handler in binding.ts
-    td.AddAction("refreshInfo", "refreshInfo", "Refresh Device Info","Reset nearly all node info")
-    td.AddAction("refreshValues", "refreshValues","Refresh Values","Refresh all non-static sensor and actuator values")
-    td.AddAction("ping", "ping", "Ping the device")
+    // general purpose node management
+    td.AddProperty("checkLifelineHealth", ManageTypeHealthCheck, "Check connection health", DataType.Bool,
+        "Initiates tests to check the health of the connection between the controller and this node and returns the results. " +
+        "This should NOT be done while there is a lot of traffic on the network because it will negatively impact the test results")
+    td.AddProperty("ping", ManageTypePing, "Ping the device", DataType.Bool)
+    td.AddProperty("refreshInfo", ManageTypeRefresh, "Refresh Device Info", DataType.Bool,
+        "Resets (almost) all information about this node and forces a fresh interview. " +
+        "After this action, the node will no longer be ready. This can take a long time.")
+    td.AddProperty("refreshValues", "", "Refresh Device Values", DataType.Bool,
+        "Refresh all non-static sensor and actuator values. " +
+        "Use sparingly. This can take a long time and generate a lot of traffic.")
 
     //--- Step 4: add properties, events, and actions from the ValueIDs
     let vids = node.getDefinedValueIDs()
@@ -333,31 +203,40 @@ export function parseNode(zwapi: ZWAPI, node: ZWaveNode): ThingTD {
         let vidMeta = node.getValueMetadata(vid)
 
         let propID = getPropID(vid, vidMeta)
-        let dc = node.deviceConfig
-
         // the vid is either config, attr, action or event based on CC
         let vidType = getVidType(node, vid)
+        if (vidType) {
+            logVid(vidLogFile, node, vid, propID, vidType)
+        }
+
         let tditem: any
         switch (vidType) {
             case "action": {
-                // TODO: basic set should be an action
+                // TODO: basic set should be an action?
                 tditem = addAction(td, node, vid, propID)
-            } break;
+            }
+                break;
             case "event": {
-                tditem = addEvent(td, node, vid, propID)
-            } break;
+                // transient values
+                if (vidValue != undefined || vidMeta.default != undefined || vidMeta.readable == false) {
+                    tditem = addEvent(td, node, vid, propID)
+                }
+            }
+                break;
             case "config": {
-                // if there is no value then don't include it
-                if (vidValue != undefined || vidMeta.default) {
-                    tditem = addConfig(td, node, vid, propID, vidValue)
+                // if there is no value then don't include the property
+                if (vidValue != undefined || vidMeta.default != undefined) {
+                    tditem = addConfig(td, node, vid, propID)
                 }
-            } break;
+            }
+                break;
+            case "attr": {
+                tditem = addAttribute(td, node, vid, propID)
+            }
+                break;
             default: {
-                // if there is no value then don't include it
-                if (vidValue != undefined || vidMeta.default) {
-                    tditem = addAttribute(td, node, vid, propID, vidValue)
-                }
-            } break;
+                // ignore this vid
+            }
         }
     }
     return td;
@@ -380,13 +259,13 @@ function SetDataSchema(ds: DataSchema | undefined, node: ZWaveNode, vid: Transla
     let vidMeta = node.getValueMetadata(vid)
     ds.title = vidMeta.label ? vidMeta.label : vid.propertyName
     let value = node.getValue(vid)
-    let valueName = value ? value : ""
+    let valueName = value != undefined ? String(value) : undefined
 
-    if (vidMeta.readable === false) {
+    if (!vidMeta.readable) {
         ds.readOnly = false
         ds.writeOnly = true  // action
     }
-    if (vidMeta.writeable === false) {
+    if (!vidMeta.writeable) {
         ds.readOnly = true   // attribute or event
     }
     // get more details on this property using its metadata and command class(es)
@@ -415,9 +294,16 @@ function SetDataSchema(ds: DataSchema | undefined, node: ZWaveNode, vid: Transla
             ds.unit = vmn.unit;
             ds.default = vmn.default?.toString() || undefined;
 
-            // names for numeric values
+            // if a list of states exist then the number is an enum.
+            // convert the enum and use strings instead of numeric values
             if (vmn.states && Object.keys(vmn.states).length > 0) {
+                ds.type = DataType.String
                 valueName = vmn.states[value as number]
+                // eg Operating Voltage has a value of 110 while the map has 120, 240
+                if (valueName == undefined) {
+                    valueName = String(value)
+                }
+                ds.initialValue = valueName
                 // prop.allowManualEntry = (vmeta as ConfigurationMetadata).allowManualEntry || false
                 ds.enum = []
                 for (const k in vmn.states) {
@@ -430,7 +316,24 @@ function SetDataSchema(ds: DataSchema | undefined, node: ZWaveNode, vid: Transla
 
         }
             break;
+        case "color": {
+            ds.type = DataType.Number
+        }
+            break;
+        case "buffer":
+        case "boolean[]":
+        case "number[]":
+        case "string[]": {
+            ds.type = DataType.Array
+        }
+            break;
+        default: {
+            // TBD: does this mean there is no schema, eg no data, eg not a value?
+            let vmn = vidMeta as ValueMetadataAny
+            ds.type = DataType.Unknown
+        }
     }
+    ds.initialValue = valueName
     if (vidMeta.description) {
         ds.description = `${vid.commandClassName}: ${vidMeta.description}`
     } else if (vid.commandClass == CommandClasses.Configuration) {
@@ -438,9 +341,10 @@ function SetDataSchema(ds: DataSchema | undefined, node: ZWaveNode, vid: Transla
     } else {
         ds.description = `${vid.commandClassName}: ${vidMeta.label}`
     }
-    if (valueName) {
-        ds.description += ` (${valueName})`
-    }
+
+    // if (vidMeta.valueChangeOptions) {
+    //     console.log("vidMeta.valueChangeOptions:",vidMeta.valueChangeOptions)
+    // }
 
 
     if (vid.propertyKey) {

@@ -60,7 +60,7 @@ export interface IDevicePubSub {
 // implementation of the Device publish/subscribe API
 export class DevicePubSubImpl implements IDevicePubSub {
     // ws: Websocket | undefined;
-    subscriptions = new Array<any>
+    subscriptions = new Array<any>;
 
     // Connect to the hub on the given address
     // set reconnect
@@ -108,7 +108,6 @@ export class DevicePubSubImpl implements IDevicePubSub {
         // this.ws?.send(msgJson)
         return
     }
-
 
     // publish property map as a properties event
     pubProperties(thingID: string, props: Map<string, string>): Error | undefined {

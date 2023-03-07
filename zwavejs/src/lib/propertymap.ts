@@ -6,36 +6,36 @@ import * as vocab from "./vocabulary.js"
 type PropKV = {
     [key: string]: string
 }
+
+
+export const EventTypeMap: PropKV = {
+    "alarmLevel": vocab.EventTypeAlarm,
+    "Any": vocab.EventTypeValue,
+    "currentValue": vocab.EventTypeValue, // any value
+    "isLow": vocab.EventTypeLowBattery,
+    "LUX Level": vocab.EventTypeLuminance,
+    // Meter
+    "value-Electric_A_Consumed": vocab.EventTypeCurrent,
+    "value-Electric_V_Consumed": vocab.EventTypeVoltage,
+    "value-Electric_W_Consumed": vocab.EventTypePower,
+    "value-Electric_kWh_Consumed": vocab.EventTypeEnergy,
+}
 export const PropNameMap: PropKV = {
-    "alarmType": vocab.VocabAlarmType,
-    "alarmLevel": vocab.VocabAlarmState,
-    "Any": vocab.VocabValue,
-    // "Battery load status": vocab.
-    "Battery level status": vocab.VocabBatteryLevel,
+    "alarmType": vocab.PropTypes.AlarmType,
+    // "alive" : vocab.Status,
+    "Battery level status": vocab.PropTypes.BatteryLevel,
     // "Button Slide Function": vocab.
-    // "controllerNodeId": vocab.
-    "currentValue": vocab.VocabValue,
-    "duration": vocab.VocabDuration,
-    // "restorePrevious": vocab.
-    //"Basic Set Level": vocab.Unknown,
-    "firmwareVersions": vocab.VocabFirmwareVersion,
-    "hardwareVersion": vocab.VocabHardwareVersion,
-    // "isLow": vocab.
-    // "level": vocab.
-    // "libraryType": vocab.
-    "LUX Level": vocab.VocabLuminance,
-    // "manufacturerId": vocab.
-    // "On-Off Duration": vocab.
+    // "duration": vocab.VocabDuration,
+    "firmwareVersions": vocab.PropTypes.FirmwareVersion,
+    "hardwareVersion": vocab.PropTypes.HardwareVersion,
+    "manufacturer": vocab.PropTypes.Manufacturer,
+    "ping" : vocab.ManageTypePing,
     // "productType": vocab.
     // "productId": vocab.
-    // "Power Management": vocab.
-    // "protocolVersion": vocab.
-    // "Re-trigger Interval Setting": vocab.
+    // "reset": vocab.PropTypeReset,
+    "refreshInfo": vocab.ManageTypeRefresh,
+    "reset" : vocab.ManageTypeReset,
     // "scene": vocab.
-    // "Sensor Detection Function": vocab.
     // "Sensitivity Level": vocab.
-    // "slowRefresh"
-    // "Touch Sound": vocab.
-    // "Touch Vibration": vocab.
-    // "wakeUpInterval": vocab.
+    "softwareVersion": vocab.PropTypes.SoftwareVersion,
 }

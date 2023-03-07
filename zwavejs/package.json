@@ -10,7 +10,7 @@
         "dist": "tsc && pkg -c package.json ./build/main.js -o dist/zwavejs-binding",
         "build": "tsc",
         "wasm": "GOOS=js GOARCH=wasm go build -o build/hapi.wasm cmd/hapi/main.go",
-        "dev": "tsc && TS_NODE_BASEURL=./build node build/binding/main.js ~/bin/hiveot/certs",
+        "dev": "tsc && TS_NODE_BASEURL=./build node build/binding/main.js ~/bin/hiveot",
         "version": "node --version"
     },
     "bin": "src/main.ts",
@@ -35,7 +35,8 @@
         "@types/md5": "^2.3.2",
         "@types/node": "^18.11.18",
         "@types/ws": "^8.5.4",
-        "pkg": "^5.8.0"
+        "pkg": "^5.8.0",
+        "types": "^0.1.1"
     },
     "readme": "readme - todo",
     "_id": "zwavejs-binding"

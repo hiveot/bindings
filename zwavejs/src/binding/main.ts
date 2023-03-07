@@ -6,20 +6,27 @@ import { HubAPI } from "../lib/hubapi.js";
 // commandline args: main certsDir gwURL
 const defaultCertsDir = "./certs/"
 const defaultURL = "wss://127.0.0.1:8444"
+const defaultLogsDir = "./logs"
 
 let appPath = ""
 let appDir = ""
+let logsDir = ""
 let certsDir = defaultCertsDir
 let gwURL = defaultURL
-
+let zwInfoFile: string | undefined
 
 if (process.argv.length > 1) {
   appPath = process.argv[1]
   appDir = path.dirname(appPath)
   certsDir = path.join(appDir, defaultCertsDir)
+  logsDir = path.join(appDir, defaultLogsDir)
+  zwInfoFile = path.join(logsDir, "zwInfo.csv")
 }
 if (process.argv.length > 2) {
-  certsDir = process.argv[2]
+  appDir = process.argv[2]
+  certsDir = path.join(appDir, defaultCertsDir)
+  logsDir = path.join(appDir, defaultLogsDir)
+  zwInfoFile = path.join(logsDir, "zwInfo.csv")
 }
 if (process.argv.length > 3) {
   gwURL = process.argv[3]
@@ -45,7 +52,6 @@ function loadCerts(certsDir: string): [clientCertPem: string, clientKeyPem: stri
 var hapi = new HubAPI()
 
 await hapi.initialize()
-
 let [clientCertPem, clientKeyPem, caCertPem] = loadCerts(certsDir)
 await hapi.connect(gwURL, clientCertPem, clientKeyPem, caCertPem)
 
@@ -54,8 +60,8 @@ await hapi.connect(gwURL, clientCertPem, clientKeyPem, caCertPem)
 import { ZwaveBinding } from "./binding.js"
 import * as fs from "fs";
 import { exit } from "process";
-let binding = new ZwaveBinding(hapi);
-binding.start("localhost:57575");
+let binding = new ZwaveBinding(hapi, zwInfoFile);
+await binding.start();
 
 
 // When the application gets a SIGINT or SIGTERM signal

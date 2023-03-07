@@ -3,10 +3,11 @@ package wsjs
 import (
 	"context"
 	"errors"
-	"github.com/hiveot/hub/api/go/hubapi"
 	"os"
 	"syscall/js"
 	"time"
+
+	"github.com/hiveot/hub/api/go/hubapi"
 
 	"capnproto.org/go/capnp/v3"
 	"capnproto.org/go/capnp/v3/rpc"
@@ -19,8 +20,9 @@ import (
 	"github.com/hiveot/hub/pkg/gateway/capnpclient"
 	pubsubclient "github.com/hiveot/hub/pkg/pubsub/capnpclient"
 
-	"github.com/hiveot/bindings/zwavejs/cmd/hapi/jasm"
 	wsockcap "zenhack.net/go/websocket-capnp/js"
+
+	"github.com/hiveot/bindings/zwavejs/cmd/hapi/jasm"
 )
 
 // HubAPI provides JS callable methods to the Hub
@@ -203,7 +205,7 @@ func (hapi *HubAPI) PubTD(this js.Value, args []js.Value) interface{} {
 		if err != nil {
 			return this, err
 		}
-		err = svcPubSub.PubTD(context.Background(), thingID, deviceType, []byte(td))
+		err = svcPubSub.PubTD(context.Background(), thingID, []byte(td))
 		return this, err
 	})
 }
@@ -224,7 +226,7 @@ func (hapi *HubAPI) SubAction(this js.Value, args []js.Value) interface{} {
 		err = svcPubSub.SubAction(context.Background(), thingID, "",
 			func(tv *thing.ThingValue) {
 				// FIXME. get the callback to work
-				handler.Call(tv.PublisherID, tv.ThingID, tv.Name, tv.ValueJSON)
+				handler.Call(tv.PublisherID, tv.ThingID, tv.ID, tv.ValueJSON)
 			})
 		return this, err
 	})

@@ -3,31 +3,45 @@
 
 // FIXME: use vocab generated from capnp 
 
+// ActionTypes standardized operator action @types
+export declare enum ActionTypes {
+    Lock = "lock",        // [bool] lock/unlock action
+    Mute = "mute",        // [bool] AV mute onoff (0,1) or toggle
+    On = "on",            // [number] lights 0-100
+    Open = "open",        // [number] open valve 0-100
+    Play = "play",        // [bool] AV play/pause action
+    SetValue = "value",   // [number] set generic value
+    Volume = "volume",    // [number] set new volume 0.100%
+}
 
-// Wost device types
-export const DeviceTypeAlarm = "alarm"          // an alarm emitter
+// HiveOT device types
+export const DeviceTypeAdapter = "adapter"        // software adapter or service, eg virtual device
 export const DeviceTypeAVControl = "avControl"      // Audio/Video controller
 export const DeviceTypeAVReceiver = "avReceiver"     // Node is a (not so) smart radio/receiver/amp (eg, denon)
 export const DeviceTypeBeacon = "beacon"         // device is a location beacon
 export const DeviceTypeButton = "button"         // device is a physical button device with one or more buttons
-export const DeviceTypeAdapter = "adapter"        // software adapter or service, eg virtual device
-export const DeviceTypePhone = "phone"          // device is a phone
 export const DeviceTypeCamera = "camera"         // Node with camera
+export const DeviceTypeCarbonMonoxideDetector = "coDetector"
 export const DeviceTypeComputer = "computer"       // General purpose computer
 export const DeviceTypeDimmer = "dimmer"         // light dimmer
-export const DeviceTypeGateway = "gateway"        // Node is a gateway for other nodes (onewire, zwave, etc)
+export const DeviceTypeDoorWindowSensor = "doorWindowSensor"
+export const DeviceTypeGateway = "gateway"        // device is a gateway for other nodes (onewire, zwave, etc)
 export const DeviceTypeKeypad = "keypad"         // Entry key pad
-export const DeviceTypeLock = "lock"           // Electronic door lock
+export const DeviceTypeLock = "lock"             // Electronic door lock
 export const DeviceTypeMultisensor = "multisensor"    // Node with multiple sensors
 export const DeviceTypeNetRepeater = "netRepeater"    // Node is a zwave or other network repeater
 export const DeviceTypeNetRouter = "netRouter"      // Node is a network router
 export const DeviceTypeNetSwitch = "netSwitch"      // Node is a network switch
 export const DeviceTypeNetWifiAP = "wifiAP"         // Node is a wifi access point
 export const DeviceTypeOnOffSwitch = "onOffSwitch"    // Node is a physical on/off switch
+export const DeviceTypePhone = "phone"          // device is a phone
 export const DeviceTypePowerMeter = "powerMeter"     // Node is a power meter
+export const DeviceTypePushbutton = "pushbutton"     // Node is a push button switch
+export const DeviceTypeSceneController = "sceneController"   // Node is a scene controller for other devices
 export const DeviceTypeSensor = "sensor"         // Node is a single sensor (volt,...)
 export const DeviceTypeService = "service"        // Node provides a service
 export const DeviceTypeSmartlight = "smartlight"     // Node is a smart light, eg philips hue
+export const DeviceTypeSmokeDetector = "smokeDetector"  // Node is a smoke detector
 export const DeviceTypeThermometer = "thermometer"    // Node is a temperature meter
 export const DeviceTypeThermostat = "thermostat"     // Node is a thermostat control unit
 export const DeviceTypeTV = "tv"             // Node is a (not so) smart TV
@@ -38,107 +52,99 @@ export const DeviceTypeWeatherService = "weatherService" // Node is a service pr
 export const DeviceTypeWeatherStation = "weatherStation" // Node is a weatherstation device
 export const DeviceTypeWeighScale = "weighScale"     // Node is an electronic weight scale
 
+// standardized sensor event types
+// standardized event @types when sensor or actuator values change
+export const EventTypeAcceleration = "acceleration"
+export const EventTypeAirQuality = "airQuality"
+export const EventTypeAlarm = "alarm"       // motion or other alarm state changed
+export const EventTypeAtmosphericPressure = "atmosphericPressure"
+export const EventTypeBinarySwitch = "binarySwitch"
+export const EventTypeCarbonDioxideLevel = "co2level"
+export const EventTypeCarbonMonoxideLevel = "coLevel"
+export const EventTypeCurrent = "current"
+export const EventTypeDewpoint = "dewpoint"
+export const EventTypeEnergy = "energy"
+export const EventTypeHeatIndex = "heatIndex"
+export const EventTypeHumidex = "humidity"
+export const EventTypeLevel = "level"            // [number] generic sensor level
+export const EventTypeLatLon = "latlon"          // [lat, lon] location change
+export const EventTypeLowBattery = "lowBattery"
+export const EventTypeLuminance = "luminance"    // [number]
+export const EventTypeMultilevelSwitch = "multiLevelSwitch"
+export const EventTypePower = "power"         // power meter
+export const EventTypePushButton = "pushButton"
+export const EventTypeSound = "sound"            // sound detector
+export const EventTypeTemperature = "temperature"
+export const EventTypeUV = "ultraviolet"
+export const EventTypeVibration = "vibration"   // vibration sensor or alarm
+export const EventTypeValue = "value"    // generic sensor value event
+export const EventTypeVoltage = "voltage"
+export const EventTypeWaterLevel = "waterLevel"
+export const EventTypeWindHeading = "windHeading"
+export const EventTypeWindSpeed = "windSpeed"
+
+// standardized management property @types
+export const ManageTypeHealthCheck = "healthCheck"  // []action is to initiate a health check
+export const ManageTypePing = "ping"        // [] action is to check if the destination is reachable
+export const ManageTypeReset = "reset"      // [] action is to reset the device
+export const ManageTypeRefresh = "refresh"  // [] action is to refresh the device info and send a new TD
+
+
+// standardized property attribute @types from HiveOT vocabulary
+export  enum PropTypes {
+   AlarmType = "alarmType",
+   CPULevel = "cpuLevel",
+   DateTime = "dateTime",
+   BatteryLevel = "batteryLevel",
+   FirmwareVersion = "firmwareVersion",
+   HardwareVersion = "hardwareVersion", // version of the physical device
+   Latency = "latency",
+   Manufacturer = "manufacturer",       // [string] device manufacturer
+   ProductName = "productName",
+   SignalStrength = "signalStrength",
+   SoftwareVersion = "softwareVersion", // application software
+}
+
 /**
  * Standardized property/event names to be used by Things and plugins to build their TD
  * If a device has multiple instances of a property (multi button, multi temperature) with
  * the same name then it becomes an object with nested properties for each instance.
  */
-export const VocabAcceleration = "acceleration"
-export const VocabActive = "active"
-export const VocabAddress = "address" // device domain or ip address
-export const VocabAirQuality = "airQuality"
-export const VocabAlarm = "alarm"
-export const VocabAlarmState = "alarmState"
-export const VocabAlarmType = "alarmType"
-export const VocabAtmosphericPressure = "atmosphericPressure"
-export const VocabBatch = "batch" // Batch publishing size
-export const VocabBatteryLevel = "batteryLevel"
-export const VocabCarbonDioxideLevel = "co2level"
-export const VocabCarbonMonoxideDetector = "coDetector"
-export const VocabCarbonMonoxideLevel = "coLevel"
-export const VocabChannel = "avChannel"
-export const VocabColor = "color" // Color in hex notation
-export const VocabColorTemperature = "colortemperature"
-export const VocabConnections = "connections"
-export const VocabCPULevel = "cpuLevel"
-export const VocabDateTime = "dateTime"    //
-export const VocabDescription = "description" // Device description
-export const VocabDeviceType = "deviceType"  // Device type from list below
-export const VocabDewpoint = "dewpoint"
-export const VocabDimmer = "dimmer"
-export const VocabDisabled = "disabled" // device or sensor is disabled
-export const VocabDoorWindowSensor = "doorWindowSensor"
-export const VocabDuration = "duration"
-export const VocabElectricCurrent = "current"
-export const VocabElectricEnergy = "energy"
-export const VocabElectricPower = "power"
-export const VocabErrors = "errors"
-export const VocabEvent = "event" // Enable/disable event publishing
-//
-export const VocabFilename = "filename"       // [string] filename to write images or other values to
-export const VocabFirmwareVersion = "firmwareVersion" // version of the physical device
-export const VocabGatewayAddress = "gatewayAddress" // [string] the 3rd party gateway address
-export const VocabHardwareVersion = "hardwareVersion" // version of the physical device
-export const VocabHostname = "hostname"       // [string] network device hostname
-export const VocabHeatIndex = "heatindex"      // [number] unit=C or F
-export const VocabHue = "hue"            //
-export const VocabHumidex = "humidex"        // [number] unit=C or F
-export const VocabHumidity = "humidity"       // [string] %
-export const VocabImage = "image"            // [byteArray] unit=jpg,gif,png
-export const VocabLatency = "latency"        // [number] sec, msec
-export const VocabLatitude = "latitude"      // [number]
-export const VocabLatLon = "latlon"          // [number,number] latitude, longitude pair of the device for display on a map r/w
-export const VocabLevel = "level"            // [number] generic sensor level
-export const VocabLongitude = "longitude"    // [number]
-export const VocabLocalIP = "localIP"        // [string] for IP nodes
-export const VocabLocation = "location"      // [string]
-export const VocabLocationName = "locationName"   // [string] name of a location
-export const VocabLock = "lock"           //
-export const VocabLoginName = "loginName"      // [string] login name to connect to the device. Value is not published
-export const VocabLuminance = "luminance"      // [number]
-export const VocabMAC = "mac"            // [string] MAC address for IP nodes
-export const VocabManufacturer = "manufacturer"   // [string] device manufacturer
-export const VocabMax = "max"            // [number] maximum value of sensor or config
-export const VocabMin = "min"            // [number] minimum value of sensor or config
-export const VocabModel = "model"          // [string] device model
-export const VocabMotion = "motion"         // [boolean]
-export const VocabMute = "avMute"         // [boolean]
-export const VocabName = "name"           // [string] Name of device or service
-export const VocabNetmask = "netmask"        // [string] IP network mask
-export const VocabOnOffSwitch = "switch"         // [boolean]
-//
-export const VocabPassword = "password" // password to connect. Value is not published.
-export const VocabPlay = "avPlay"
-export const VocabPollInterval = "pollInterval" // polling interval in seconds
-export const VocabPort = "port"         // network address port
-export const VocabPowerSource = "powerSource"  // battery, usb, mains
-export const VocabProduct = "product"      // device product or model name
-export const VocabPublicKey = "publicKey"    // public key for encrypting sensitive configuration settings
-export const VocabPushButton = "pushButton"   // with nr of pushes
-export const VocabRain = "rain"
-export const VocabRelay = "relay"
-export const VocabSaturation = "saturation"
-export const VocabScale = "scale"
-export const VocabSignalStrength = "signalStrength"
-export const VocabSmokeDetector = "smokeDetector"
-export const VocabSnow = "snow"
-export const VocabSoftwareVersion = "softwareVersion" // version of the application software running the node
-export const VocabSoundDetector = "soundDetector"
-export const VocabSubnet = "subnet" // IP subnets configuration
-export const VocabSwitch = "switch" // on/off switch: "on" "off"
-export const VocabTemperature = "temperature"
-// export const VocabType              = "type" // Node type
-export const VocabUltraviolet = "ultraviolet"
-export const VocabUnknown = ""    // Not a known output
-export const VocabURL = "url" // node URL
-export const VocabVibrationDetector = "vibrationDetector"
-export const VocabValue = "value" // generic value
-export const VocabVoltage = "voltage"
-export const VocabVolume = "volume"
-export const VocabWaterLevel = "waterLevel"
-export const VocabWeather = "weather" // description of weather, eg sunny
-export const VocabWindHeading = "windHeading"
-export const VocabWindSpeed = "windSpeed"
+// export const VocabAddress = "address" // device domain or ip address
+// export const VocabBatch = "batch" // Batch publishing size
+// export const VocabChannel = "avChannel"
+// export const VocabColor = "color" // Color in hex notation
+// export const VocabColorTemperature = "colortemperature"
+// export const VocabConnections = "connections"
+// export const VocabDisabled = "disabled" // device or sensor is disabled
+// export const VocabDuration = "duration"
+// export const VocabErrors = "errors"
+// //
+// export const VocabFilename = "filename"       // [string] filename to write images or other values to
+// export const VocabGatewayAddress = "gatewayAddress" // [string] the 3rd party gateway address
+// export const VocabHostname = "hostname"       // [string] network device hostname
+// export const VocabHue = "hue"            //
+// // export const VocabHumidex = "humidex"        // [number] unit=C or F
+// // export const VocabHumidity = "humidity"       // [string] %
+// export const VocabImage = "image"            // [byteArray] unit=jpg,gif,png
+// export const VocabLocationName = "locationName"   // [string] name of a location
+// export const VocabLoginName = "loginName"      // [string] login name to connect to the device. Value is not published
+// export const VocabMAC = "mac"            // [string] MAC address for IP nodes
+// export const VocabName = "name"           // [string] Name of device or service
+// export const VocabNetmask = "netmask"        // [string] IP network mask
+// export const VocabPassword = "password" // password to connect. Value is not published.
+// export const VocabPollInterval = "pollInterval" // polling interval in seconds
+// export const VocabPort = "port"         // network address port
+// export const VocabPowerSource = "powerSource"  // battery, usb, mains
+// export const VocabPublicKey = "publicKey"    // public key for encrypting sensitive configuration settings
+// // export const VocabRain = "rain"
+// export const VocabRelay = "relay"
+// export const VocabSaturation = "saturation"
+// export const VocabScale = "scale"
+// export const VocabSnow = "snow"
+// export const VocabSubnet = "subnet" // IP subnets configuration
+// export const VocabUnknown = ""    // Not a known output
+// export const VocabURL = "url" // node URL
 
 
 

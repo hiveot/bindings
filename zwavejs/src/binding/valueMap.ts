@@ -5,7 +5,7 @@ import {
     ZWaveNode, ZWavePlusNodeType, ZWavePlusRoleType,
 } from "zwave-js";
 import { CommandClasses, InterviewStage, SecurityClass } from '@zwave-js/core';
-import {VocabManufacturer} from "../lib/vocabulary.js";
+import {PropTypes} from "../lib/vocabulary.js";
 
 
 
@@ -71,7 +71,7 @@ export class ValueMap extends Map<string, any> {
         this.setIf("keepAwake", node.keepAwake);
         this.setIf("label", node.deviceConfig?.label)
         this.setIf("manufacturerId", node.manufacturerId);
-        this.setIf(VocabManufacturer, node.deviceConfig?.manufacturer);
+        this.setIf(PropTypes.Manufacturer, node.deviceConfig?.manufacturer);
 
         this.setIf("maxDataRate", node.maxDataRate)
         if (node.nodeType) {

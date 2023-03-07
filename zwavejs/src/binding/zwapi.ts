@@ -3,7 +3,7 @@ import {
   InclusionResult,
   NodeStatistics,
   NodeStatus,
-  TranslatedValueID,
+  TranslatedValueID, ValueMetadataNumeric, ValueMetadataString,
   ZWaveNode,
   ZWaveNodeMetadataUpdatedArgs,
   ZWaveNodeValueAddedArgs,
@@ -12,6 +12,7 @@ import {
   ZWaveNodeValueUpdatedArgs,
 } from "zwave-js";
 import md5 from "md5";
+import type {ValueMetadataBuffer} from "@zwave-js/core";
 const DefaultNetworkPassword = "My name is groot";
 
 // ZWAPI is a wrapper around zwave-js for use by the HiveOT binding.
@@ -50,6 +51,15 @@ export class ZWAPI {
     this.onNodeUpdate = onNodeUpdate;
     this.onValueUpdate = onValueUpdate;
     this.nodes = new Map<string, ZWaveNode>();
+  }
+
+  // Add a known node and subscribe to its ready event before doing anything else
+  addNode(node: ZWaveNode) {
+    console.info(`Node ${node.id} - waiting for it to be ready`)
+    node.on("ready", (node) => {
+      console.info("--- Node", node.id, "is ready. Setting up the node.");
+      this.setupNode(node);
+    });
   }
 
   // connect initializes the zwave-js driver and connect it to the ZWave controller.
@@ -121,14 +131,6 @@ export class ZWAPI {
   // getDeviceID(node: ZWaveNode): string {
   //   return getDeviceID(this.driver, node)
   // }
-
-  // return the homeID of the driver
-  // This returns the homeID as hex string
-  get homeID(): string {
-    let hid = this.driver.controller.homeId;
-    let homeIDStr = hid?.toString(16).toUpperCase() || "n/a"
-    return homeIDStr
-  }
 
   // Create the unique device ID for publishing
   getDeviceID(nodeID: number): string {
@@ -217,13 +219,12 @@ export class ZWAPI {
   }
 
 
-  // Add a known node and subscribe to its ready event before doing anything else
-  addNode(node: ZWaveNode) {
-    console.info(`Node ${node.id} - waiting for it to be ready`)
-    node.on("ready", (node) => {
-      console.info("--- Node", node.id, "is ready. Setting up the node.");
-      this.setupNode(node);
-    });
+  // return the homeID of the driver
+  // This returns the homeID as hex string
+  get homeID(): string {
+    let hid = this.driver.controller.homeId;
+    let homeIDStr = hid?.toString(16).toUpperCase() || "n/a"
+    return homeIDStr
   }
 
   // setup a new node after it is ready
@@ -259,8 +260,10 @@ export class ZWAPI {
     });
 
     node.on("metadata updated", (node: ZWaveNode, args: ZWaveNodeMetadataUpdatedArgs) => {
-      // this updates the whole TD. Hopefully it doesn't happen too often.
-      this.onNodeUpdate(node)
+      // FIXME: this is invoked event when metadata isn't updated. What to do?
+      // this.onNodeUpdate(node)
+      let newValue = node.getValue(args)
+      this.onValueUpdate(node, args, newValue)
       console.info(`Node ${node.id} value metadata updated. ${args.metadata}`);
     });
 
@@ -279,10 +282,12 @@ export class ZWAPI {
     });
 
     node.on("value added", (node: ZWaveNode, args: ZWaveNodeValueAddedArgs) => {
+      // FIXME: update the TD
       this.onValueUpdate(node, args, args.newValue)
     });
 
     node.on("value notification", (node: ZWaveNode, vid: ZWaveNodeValueNotificationArgs) => {
+      console.info(`Node ${node.id}, value notification: propName=${vid.propertyName}, value=${vid.value}`);
       this.onValueUpdate(node, vid, vid.value)
     });
 
