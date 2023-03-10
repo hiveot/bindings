@@ -1,103 +1,8 @@
 // Definition of the Thing's TD, Thing Description document
 // This consists of the TD itself with properties
 
-import { DataType } from "./vocabulary.js"
-import {getEnumMemberName} from "zwave-js";
-
-export class DataSchema extends Object {
-    public constructor(init?:Partial<DataSchema>) {
-        super();
-        Object.assign(this, init)
-    }
-
-    // Used to indicate input, output, attribute. See vocab.WoSTAtType
-    public "@type": string | undefined = undefined
-
-    // Provides a default value of any type as per data schema
-    public default: string | undefined = undefined
-
-    // Provides additional (human-readable) information based on a default language
-    public description: string | undefined = undefined
-    // Provides additional nulti-language information
-    public descriptions: string[] | undefined = undefined
-
-    // Restricted set of values provided as an array.
-    //  for example: ["option1", "option2"]
-    public enum: any[] | undefined = undefined
-
-    // number maximum value
-    public maximum: number | undefined = undefined
-
-    // maximum nr of items in array
-    public maxItems: number | undefined = undefined
-
-    // string maximum length
-    public maxLength: number | undefined = undefined
-
-    // number minimum value
-    public minimum: number | undefined = undefined
-
-    // minimum nr of items in array
-    public minItems: number | undefined = undefined
-
-    // string minimum length
-    public minLength: number | undefined = undefined
-
-    // Boolean value to indicate whether a property interaction / value is read-only (=true) or not (=false)
-    // the value true implies read-only.
-    public readOnly: boolean = true
-
-    // Human-readable title in the default language
-    public title: string | undefined
-    // Human-readable titles in additional languages
-    public titles: string[] | undefined = undefined
-
-    // Type provides JSON based data type,  one of DataTypeNumber, ...object, array, string, integer, boolean or null
-    public type: DataType = DataType.Unknown
-
-    // See vocab UnitNameXyz for units in the WoST vocabulary
-    public unit: string | undefined = undefined
-
-    // Boolean value to indicate whether a property interaction / value is write-only (=true) or not (=false)
-    public writeOnly: boolean = false
-
-    // Initial value at time of creation
-    // this is always a string with optionally a unit
-    // not part of the WoT definition but useful for testing and debugging
-    public initialValue: string | undefined = undefined
-
-    // Enumeration table to lookup the value or key
-    private enumTable: Object|undefined = undefined
-
-    // Change the property into a writable configuration
-    SetAsConfiguration(): DataSchema {
-        this.readOnly = false
-        return this
-    }
-
-    // Add a list of enumerations to the schema.
-    // This changes the schema to DataTypeString, fills in the enum array of strings, and
-    // sets initialValue to the converted string.
-    // enumeration is a map from enum values to names and vice-versa
-    SetAsEnum(enumeration: Object, initialValue: number): DataSchema {
-        this.initialValue = getEnumMemberName(enumeration, initialValue)
-        this.enumTable = enumeration
-        let keys = Object.values(enumeration)
-        this.enum = keys.filter((key:any)=>{
-            let isName = (!Number.isFinite(key))
-            return isName
-            }
-        )
-        return this
-    }
-
-    // Set the description and return this
-    SetDescription(description:string): DataSchema {
-        this.description = description
-        return this
-    }
-}
-
+import type {DataType} from "./vocabulary.js"
+import {DataSchema} from "./dataSchema.js";
 
 
 export class InteractionAffordance extends Object {
@@ -142,7 +47,7 @@ export class ActionAffordance extends InteractionAffordance {
     // }>()
 
     // Create an action affordance instance with a schema for its input, if any
-    constructor(dataSchema?:DataSchema) {
+    constructor(dataSchema?: DataSchema) {
         super();
         this.input = dataSchema
     }
@@ -155,7 +60,7 @@ export class EventAffordance extends InteractionAffordance {
     public data?: DataSchema
 
     // Create an event affordance instance with a schema for its data, if any
-    constructor(dataSchema?:DataSchema) {
+    constructor(dataSchema?: DataSchema) {
         super();
         this.data = dataSchema
     }
@@ -165,7 +70,7 @@ export class EventAffordance extends InteractionAffordance {
 /** Thing Description property affordance
  * The specification says this is an interaction affordance that is also a data schema?
  * JS doesn't support multiple inheritance so we'll use a dataschema and add the missing
- * 'forms' field from the interaction affordance. 
+ * 'forms' field from the interaction affordance.
  */
 export class PropertyAffordance extends DataSchema {
 
@@ -201,7 +106,7 @@ export class ThingTD extends Object {
     }
 
     /** Unique thing ID */
-    public readonly id: string | undefined = "";
+    public readonly id: string = "";
 
     /** Document creation date in ISO8601 */
     public created: string = "";
@@ -219,7 +124,7 @@ export class ThingTD extends Object {
     public "@type": string = "";
 
     /**
-     * Collection of properties of a thing 
+     * Collection of properties of a thing
      * @param key see WoST vocabulary PropNameXxx
      */
     public readonly properties: { [key: string]: PropertyAffordance } = {};
@@ -242,7 +147,7 @@ export class ThingTD extends Object {
     // @param title is the short display title of the action.
     // @param description optional detailed description of the action
     // @param input with optional dataschema of the action input data
-    AddAction(id: string, actionType: string, title: string, description?: string, input?:DataSchema): ActionAffordance {
+    AddAction(id: string, actionType: string, title: string, description?: string, input?: DataSchema): ActionAffordance {
         let action = new ActionAffordance()
         action.id = id;
         action["@type"] = actionType
@@ -258,11 +163,11 @@ export class ThingTD extends Object {
     //
     // @param id is the event instance ID under which it is stored in the event map.
     //        This can be anything arbitrary as long as the TD and value event use the same ID.
-    // @param eventType one of the event types from the vocabulary
+    // @param eventType one of the event @types from the vocabulary
     // @param title is the short display title of the action.
     // @param description optional detailed description of the action
     // @param dataSchema optional event data schema
-    AddEvent(id: string, eventType:string, title: string, description?: string, dataSchema?:DataSchema): EventAffordance {
+    AddEvent(id: string, eventType: string, title: string, description?: string, dataSchema?: DataSchema): EventAffordance {
         let ev = new EventAffordance()
         ev.id = id;
         ev["@type"] = eventType
@@ -282,7 +187,7 @@ export class ThingTD extends Object {
     // @param title is the title used in the property. Leave empty to use the name.
     // @param dataType is the type of data the property holds, DataTypeNumber, ..Object, ..Array, ..String, ..Integer, ..Boolean or null
     // @param initialValue the value at time of creation, for testing and debugging
-    AddProperty(id: string, propTypeName: string|undefined, title: string | undefined, dataType: DataType, initialValue?: any): PropertyAffordance {
+    AddProperty(id: string, propTypeName: string | undefined, title: string | undefined, dataType: DataType, initialValue?: any): PropertyAffordance {
         let prop = new PropertyAffordance()
         prop.id = id;
         prop["@type"] = propTypeName
@@ -330,19 +235,6 @@ export class ThingTD extends Object {
     }
 
 
-    // Convert readonly properties into an array for display
-    // Returns table of {key, tdproperty}
-    // public static GetThingAttributes = (td: ThingTD): PropertyAffordance[] => {
-    //   let res = Array<PropertyAffordance>()
-    //   if (!!td && !!td.properties) {
-    //     for (let [key, val] of Object.entries(td.properties)) {
-    //       if (val.readOnly) {
-    //         res.push(val)
-    //       }
-    //     }
-    //   }
-    //   return res
-    // }
     // Convert readonly properties into an array for display
     // Returns table of {key, tdproperty}
     public static GetAttributeNames = (td: ThingTD): string[] => {

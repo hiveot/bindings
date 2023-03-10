@@ -1,14 +1,53 @@
-import type {TranslatedValueID, ZWaveNode} from "zwave-js";
-import {CommandClasses} from "@zwave-js/core";
+import type {ZWaveNode} from "zwave-js";
+import {CommandClasses, ValueID} from "@zwave-js/core";
+import {ActionTypes, EventTypes} from "../lib/vocabulary.js";
 
-// Determine whether the vid is an attr, config, event, action or to be ignored
+
+// ValueID to Affordance classification
+export interface VidAffordance {
+    atType: string, // @type of the property, event or action
+    affordance: "action" | "event" | "attr" | "config" | undefined
+}
+
+// Override of zwavejs VID to HiveOT action, event, config or attributes
+// This allows fine-grained adjustments of the default rules for mapping VIDs.
+// Key is the VID {CC}-{propertyName}[-{propertyKey}] (if propertyKey exists)
+const overrideMap: Map<string, Partial<VidAffordance> | undefined> = new Map([
+    // Basic 0x20 (32): ignore these VIDs as there are more specific ones
+    ["32-currentValue", {}],
+    ["32-targetValue", {}],
+    ["32-duration", {}],
+    ["32-restorePrevious", {}],
+
+    // Binary Switch 0x25 (37) is an actuator
+    ["37-currentValue", {atType: ActionTypes.Switch, affordance: "event"}],
+    ["37-targetValue", {atType: ActionTypes.Switch, affordance: "action"}],
+
+    // Multilevel Switch (38) is an actuator
+
+    // Binary Sensor (48)
+    ["48-Any", {atType: EventTypes.Alarm, affordance: "event"}],
+
+    // Meter - electrical
+    ["50-value-65537", {atType: EventTypes.Energy, affordance: "event"}],
+    ["50-value-66049", {atType: EventTypes.Power, affordance: "event"}],
+    ["50-value-66561", {atType: EventTypes.Voltage, affordance: "event"}],
+    ["50-value-66817", {atType: EventTypes.Current, affordance: "event"}],
+    ["50-reset", {affordance: "config"}], // for managers, not operators
+
+    // Notification
+    ["113-Home Security-Motion sensor status", {atType: EventTypes.Motion, affordance: "event"}],
+]);
+
+
+// Default rules to determine whether the vid is an attr, config, event, action or to be ignored
 // this returns
 //  action: the vid is writable and not readable
 //  event: the vid is a readonly command CC ?
 //  attr: the vid is read-only, not an event, and has a value or default
 //  config: the vid is writable, not an action, and has a value or default
 //  undefined if the vid CC is deprecated or the vid is to be ignored
-export function getVidType(node: ZWaveNode, vid: TranslatedValueID): "action" | "event" | "config" | "attr" | undefined {
+function defaultVidAffordance(node: ZWaveNode, vid: ValueID): "action" | "event" | "config" | "attr" | undefined {
     let vidMeta = node.getValueMetadata(vid)
     const MaxNrScenes = 10  // TODO: make configurable
 
@@ -121,4 +160,40 @@ export function getVidType(node: ZWaveNode, vid: TranslatedValueID): "action" | 
         return "config"
     }
     return "attr"
+}
+
+
+// getVidAffordance determines how to represent the Vid in the TD.
+// This first uses the default rules based mainly on the Vid's CommandClass and writability,
+// then applies the override map to deal with individual Vids.
+// The override map is currently hard coded but intended to be moved to a configuration file.
+//
+// Returns a VidAffordance object or undefined if the Vid is to be ignored.
+export function getVidAffordance(node: ZWaveNode, vid: ValueID): VidAffordance | undefined {
+    // Determine default values for @type and affordance
+    let affordance = defaultVidAffordance(node, vid)
+    let atType = ""
+    let va: VidAffordance = {
+        atType: atType,
+        affordance: affordance
+    }
+
+    // Apply values from an override
+    let mapKey = vid.commandClass + "-" + String(vid.property)
+    if (vid.propertyKey != undefined) {
+        mapKey += "-" + String(vid.propertyKey)
+    }
+    if (overrideMap.has(mapKey)) {
+        let override = overrideMap.get(mapKey)
+        if (!override) {
+            return undefined
+        }
+        if (override.atType != undefined) {
+            va.atType = override.atType
+        }
+        if (override.affordance != undefined) {
+            va.affordance = override.affordance
+        }
+    }
+    return va.affordance ? va : undefined
 }

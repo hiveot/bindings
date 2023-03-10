@@ -168,12 +168,15 @@ func (hapi *HubAPI) PubEvent(this js.Value, args []js.Value) interface{} {
 
 // PubProperties Async method for publishing thing properties
 // args[0] = thingID
-// args[1] = object<key:value>
+// args[1] = map<key:value>
 func (hapi *HubAPI) PubProperties(this js.Value, args []js.Value) interface{} {
 	return jasm.Await(func() (js.Value, error) {
 		props := make(map[string][]byte)
 
 		thingID := args[0].String()
+		vo := js.ValueOf(args[1])
+		logrus.Infof("vo=%s", vo)
+
 		propslen := args[1].Length()
 		for i := 0; i < propslen; i++ {
 			kv := args[1].Index(i)
@@ -210,23 +213,21 @@ func (hapi *HubAPI) PubTD(this js.Value, args []js.Value) interface{} {
 	})
 }
 
-// SubAction Async method for subscribing to actions from JS
-// args[0] = thingID to subscribe to
-// args[1] = callback handler to invoke: (publisher ID, thingID, actionName, actionValue)
-func (hapi *HubAPI) SubAction(this js.Value, args []js.Value) interface{} {
+// SubActions Async method for subscribing to all actions of a given thing, or all things.
+// args[0] = callback handler to invoke: (publisher ID, thingID, actionName, actionValue)
+func (hapi *HubAPI) SubActions(this js.Value, args []js.Value) interface{} {
 	return jasm.Await(func() (js.Value, error) {
 
-		thingID := args[0].String()
-		handler := args[1]
-		logrus.Infof("subscribing to actions for thing id=%s", thingID)
+		handler := args[0]
+		logrus.Infof("subscribing to actions of publisher %s using handler: %s", hapi.serviceID,
+			handler.Type())
 		svcPubSub, err := hapi.getServicePubSub()
 		if err != nil {
 			return this, err
 		}
-		err = svcPubSub.SubAction(context.Background(), thingID, "",
+		err = svcPubSub.SubAction(context.Background(), "", "",
 			func(tv *thing.ThingValue) {
-				// FIXME. get the callback to work
-				handler.Call(tv.PublisherID, tv.ThingID, tv.ID, tv.ValueJSON)
+				handler.Invoke(tv.ThingID, tv.ID, string(tv.ValueJSON))
 			})
 		return this, err
 	})

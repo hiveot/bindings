@@ -28,7 +28,7 @@
         "strict": true,
         "target": "ES2018", // match zwavejs?
         "typeRoots": [ // for node-ts
-            "src/binding/global.d.ts"
+          "src/lib/global.d.ts"
             // for use with websocket and wasm globals
         ],
         // watch=true breaks CI build steps

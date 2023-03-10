@@ -21,7 +21,7 @@ func Gomain() {
 	js.Global().Set("pubTD", js.FuncOf(hapi.PubTD))
 	js.Global().Set("pubEvent", js.FuncOf(hapi.PubEvent))
 	js.Global().Set("pubProperties", js.FuncOf(hapi.PubProperties))
-	js.Global().Set("subAction", js.FuncOf(hapi.SubAction))
+	js.Global().Set("subActions", js.FuncOf(hapi.SubActions))
 	js.Global().Set("gostop", js.FuncOf(Gostop))
 	//time.Sleep(time.Millisecond * 100)
 

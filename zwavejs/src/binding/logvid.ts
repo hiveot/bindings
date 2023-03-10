@@ -3,9 +3,10 @@
 import type {TranslatedValueID, ValueMetadataNumeric, ValueMetadataString, ZWaveNode} from "zwave-js";
 import type {ConfigurationMetadata, ValueMetadataBuffer} from "@zwave-js/core";
 import {CommandClasses, ConfigValueFormat} from "@zwave-js/core";
+import type {VidAffordance} from "./getVidAffordance";
 
 export function logVid(logFd: number | undefined, node?: ZWaveNode, vid?: TranslatedValueID,
-                       propID?: string, affordanceType?: string) {
+                       propID?: string, va?: VidAffordance) {
     if (!logFd) {
         return
     } else if (!node || !vid) {
@@ -13,7 +14,7 @@ export function logVid(logFd: number | undefined, node?: ZWaveNode, vid?: Transl
             "time; nodeID; CC; CC Name; endpoint; property; propertyName; propertyKey; propertyKeyName; " +
             "value; label; type; readable; writable; default; description; " +
             "unit; min; max; states; allowManualEntry; ccSpecific; other; " +
-            "propID; affordanceType\n");
+            "propID; affordance; dataType; atType\n");
         return
     }
     let vm = node.getValueMetadata(vid)
@@ -93,6 +94,6 @@ export function logVid(logFd: number | undefined, node?: ZWaveNode, vid?: Transl
         `${prop};${propName};${propKey};${propKeyName};` +
         `${vidValue};${vm.label};${vm.type};${vm.readable};${vm.writeable};${defaultValue};${description};` +
         `${unit};${min};${max};${states};${allowManualEntry};${ccSpecific};${other};` +
-        `${propID};${affordanceType};${dataType}\n`
+        `${propID};${va?.affordance};${dataType};${va?.atType}\n`
     fs.appendFileSync(logFd, vidLine)
 }

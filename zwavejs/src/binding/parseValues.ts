@@ -1,16 +1,11 @@
-import { ConfigManager } from "@zwave-js/config";
-import { cp } from "fs";
-import {
-    getEnumMemberName, NodeStatus,
-    ZWaveNode, ZWavePlusNodeType, ZWavePlusRoleType,
-} from "zwave-js";
-import { CommandClasses, InterviewStage, SecurityClass } from '@zwave-js/core';
+import {getEnumMemberName, NodeStatus, ZWaveNode, ZWavePlusNodeType, ZWavePlusRoleType,} from "zwave-js";
+import {InterviewStage, SecurityClass} from '@zwave-js/core';
 import {PropTypes} from "../lib/vocabulary.js";
 
 
-
 // Value map for node values
-export class ValueMap extends Map<string, any> {
+
+export class ParseValues extends Map<string, any> {
     // @param node: create the map for this node
     constructor(node?: ZWaveNode) {
         super()
@@ -18,7 +13,9 @@ export class ValueMap extends Map<string, any> {
             this.parseNodeValues(node)
         }
     }
-    // Set a value if it is not undefined 
+
+
+    // Set a value if it is not undefined
     setIf(key: string, val: any) {
         if (val != undefined) {
             this.set(key, val)
@@ -27,8 +24,8 @@ export class ValueMap extends Map<string, any> {
 
     // compare the current value map with an old map and return a new value map with the differences 
     // This only returns values if they exist in the current map.
-    diffValues(oldValues: ValueMap): ValueMap {
-        let diffMap = new ValueMap()
+    diffValues(oldValues: ParseValues): ParseValues {
+        let diffMap = new ParseValues()
         for (let [key, newVal] of this) {
             let oldVal = oldValues.get(key)
             if (newVal !== oldVal) {
@@ -116,28 +113,3 @@ export class ValueMap extends Map<string, any> {
     }
 }
 
-
-
-
-// // Convert the zwave ValueType to HiveOT DataType
-// export function ValueTypeToDataType(valueType: ValueType): DataType {
-//     // number -> number
-//     // string -> string
-//     // boolean -> boolean
-//     switch (valueType) {
-//         case "string":
-//             return DataType.String;
-//         case "boolean":
-//             return DataType.Bool;
-//         case "number":
-//             return DataType.Number;
-//         case "string[]":
-//             return DataType.Array;
-//         case "boolean[]":
-//             return DataType.Array;
-//         case "number[]":
-//             return DataType.Array;
-
-//     }
-//     return DataType.String;
-// }

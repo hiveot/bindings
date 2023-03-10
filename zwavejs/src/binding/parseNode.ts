@@ -2,7 +2,6 @@ import {
     NodeStatus,
     NodeType,
     TranslatedValueID,
-    ValueMetadataAny,
     ValueMetadataBoolean,
     ValueMetadataNumeric,
     ValueMetadataString,
@@ -11,26 +10,24 @@ import {
     ZWavePlusRoleType
 } from "zwave-js";
 import {CommandClasses, InterviewStage} from '@zwave-js/core';
-import {ActionAffordance, DataSchema, EventAffordance, PropertyAffordance, ThingTD} from "../lib/thing.js";
-import {DataType, ManageTypeHealthCheck, ManageTypePing, ManageTypeRefresh, PropTypes,} from "../lib/vocabulary.js";
+import {ActionAffordance, EventAffordance, PropertyAffordance, ThingTD} from "../lib/thing.js";
+import {ActionTypes, DataType, EventTypes, PropTypes} from "../lib/vocabulary.js";
 import type {ZWAPI} from "./zwapi.js";
-import {getPropType} from "./getPropType.js";
 import {logVid} from "./logvid.js";
 import {getPropID} from "./getPropID.js";
-import {getVidType} from "./getVidType.js";
-
-// Fixed events emitted by a node
-export const EventNameAlive = "alive"
+import {getVidAffordance, VidAffordance} from "./getVidAffordance.js";
+import {getDeviceType} from "./getDeviceType.js";
+import {DataSchema} from "../lib/dataSchema.js";
 
 
 // Add the zwave value data to the TD as an action
-function addAction(td: ThingTD, node: ZWaveNode, vid: TranslatedValueID, actionID: string): ActionAffordance {
-    let vidMeta = node.getValueMetadata(vid)
+function addAction(td: ThingTD, node: ZWaveNode, vid: TranslatedValueID, actionID: string, va: VidAffordance): ActionAffordance {
+    // let vidMeta = node.getValueMetadata(vid)
 
     // actions without input have no schema. How to identify these?
     let schema = new DataSchema()
     SetDataSchema(schema, node, vid)
-    let action = td.AddAction(actionID, "",
+    let action = td.AddAction(actionID, va.atType,
         schema.title || actionID, schema.description, schema)
 
     if (action.input) {
@@ -43,27 +40,17 @@ function addAction(td: ThingTD, node: ZWaveNode, vid: TranslatedValueID, actionI
 }
 
 // Add the zwave value data to the TD as an attribute property
-function addAttribute(td: ThingTD, node: ZWaveNode, vid: TranslatedValueID, propID: string): PropertyAffordance {
+function addAttribute(td: ThingTD, node: ZWaveNode, vid: TranslatedValueID, propID: string, va: VidAffordance): PropertyAffordance {
 
-    let propTypeName: string | undefined
-    let propType = getPropType(node, vid)
-    if (propType) {
-        propTypeName = propType.typeName
-    }
-    let prop = td.AddProperty(propID, propTypeName, "", DataType.Unknown)
+    let prop = td.AddProperty(propID, va?.atType, "", DataType.Unknown)
     // SetDataSchema also sets the title and data type
     SetDataSchema(prop, node, vid)
     return prop
 }
 
 // Add the zwave VID to the TD as a configuration property
-function addConfig(td: ThingTD, node: ZWaveNode, vid: TranslatedValueID, propID: string): PropertyAffordance {
-    let propTypeName: string | undefined
-    let propType = getPropType(node, vid)
-    if (propType) {
-        propTypeName = propType.typeName
-    }
-    let prop = td.AddProperty(propID, propTypeName, "", DataType.Unknown)
+function addConfig(td: ThingTD, node: ZWaveNode, vid: TranslatedValueID, propID: string, va: VidAffordance): PropertyAffordance {
+    let prop = td.AddProperty(propID, va.atType, "", DataType.Unknown)
     prop.readOnly = false
     // SetDataSchema also sets the title and data type
     SetDataSchema(prop, node, vid)
@@ -73,12 +60,12 @@ function addConfig(td: ThingTD, node: ZWaveNode, vid: TranslatedValueID, propID:
 }
 
 // Add the zwave VID to the TD as an event
-function addEvent(td: ThingTD, node: ZWaveNode, vid: TranslatedValueID, eventID: string): EventAffordance {
+function addEvent(td: ThingTD, node: ZWaveNode, vid: TranslatedValueID, eventID: string, va: VidAffordance): EventAffordance {
 
     let schema = new DataSchema()
     SetDataSchema(schema, node, vid)
 
-    let ev = td.AddEvent(eventID, "", schema.title || eventID, schema.description, schema)
+    let ev = td.AddEvent(eventID, va.atType, schema.title || eventID, schema.description, schema)
 
     if (ev.data) {
         // if (ev.data) {
@@ -90,21 +77,6 @@ function addEvent(td: ThingTD, node: ZWaveNode, vid: TranslatedValueID, eventID:
     }
     return ev
 
-}
-
-
-// getDeviceType returns the device type of the node in the HiveOT vocabulary
-// this is based on the generic device class name. eg 'Binary Switch' and will be converted
-// to the HiveOT vocabulary.
-export function getDeviceType(node: ZWaveNode): string {
-    let deviceClassGeneric = node.deviceClass?.generic.label;
-    let deviceType: string;
-
-    deviceType = deviceClassGeneric ? deviceClassGeneric : node.name ? node.name : "n/a";
-
-    // TODO: map the zwave CC to the HiveOT vocabulary
-
-    return deviceType
 }
 
 // parseNodeInfo convers a ZWave Node into a WoT TD document 
@@ -121,8 +93,19 @@ export function parseNode(zwapi: ZWAPI, node: ZWaveNode, vidLogFile?: number): T
     //--- Step 1: TD definition
     let deviceID = zwapi.getDeviceID(node.id)
     let deviceType = getDeviceType(node)
-    let title = node.name || node.label || node.deviceConfig?.description || deviceID;
-    let description = `${node.label} ${node.deviceConfig?.description} `;
+    // let title = node.name || node.label || node.deviceConfig?.description || deviceID;
+    // let description = `${node.label} ${node.deviceConfig?.description} `;
+    let title = node.name
+    if (!title) {
+        title = node.label || deviceID
+        if (node.deviceConfig?.description) {
+            title += " " + node.deviceConfig?.description
+        }
+    }
+    let description = (node.label || deviceID) + ", " + deviceType
+    if (node.deviceConfig) {
+        description = node.deviceConfig.manufacturer + " " + description + ", " + node.deviceConfig.description
+    }
 
     // if (node.deviceConfig) {
     //     description = node.deviceConfig.description
@@ -156,39 +139,37 @@ export function parseNode(zwapi: ZWAPI, node: ZWaveNode, vidLogFile?: number): T
     }
     td.AddPropertyIf(node.productId, "productId", "", "", DataType.Number);
     td.AddPropertyIf(node.productType, "productType", PropTypes.ProductName, "", DataType.Number);
+
     td.AddPropertyIf(node.protocolVersion, "protocolVersion", "", "ZWave protocol version", DataType.String);
     td.AddPropertyIf(node.sdkVersion, "sdkVersion", "", "", DataType.String);
     if (node.status) {
-        td.AddProperty("status", "", "Node Awake or Asleep Status", DataType.Number)
+        td.AddProperty(EventTypes.Status, EventTypes.Status, "Node status", DataType.Number)
             .SetAsEnum(NodeStatus, node.status)
     }
     td.AddPropertyIf(node.supportedDataRates, "supportedDataRates", "", "ZWave Data Speed", DataType.String);
     td.AddPropertyIf(node.userIcon, "userIcon", "", "", DataType.String);
-    if (node.zwavePlusNodeType) {
-        td.AddProperty("zwavePlusNodeType", "", "", DataType.Number)
-            .SetAsEnum(ZWavePlusNodeType, node.zwavePlusNodeType)
+
+    // always show whether this is zwave+
+    let prop = td.AddProperty("zwavePlusNodeType", "", "Type of ZWave+", DataType.Number, node.zwavePlusNodeType)
+    if (node.zwavePlusNodeType != undefined) {
+        prop.SetAsEnum(ZWavePlusNodeType, node.zwavePlusNodeType)
+    } else {
+        prop.initialValue = "n/a"
+        prop.description = "Z-Wave+ Command Class is not supported"
     }
+
     if (node.zwavePlusRoleType) {
-        td.AddProperty("zwavePlusRoleType", "", "ZWave Controller or Slave", DataType.Number)
+        td.AddProperty("zwavePlusRoleType", "", "Type of Z-Wave+ role of this device", DataType.Number)
             .SetAsEnum(ZWavePlusRoleType, node.zwavePlusRoleType)
     }
-    td.AddPropertyIf(node.zwavePlusVersion, "zwavePlusVersion", "", "", DataType.Number);
-
-    //
-    // td.AddPropertyIf(EventNameAlive, EventTypeStatus,"Node alive status","",
-    //   new DataSchema({
-    //     title:"Status",
-    //     type: DataType.String,
-    //     enum: ["Unknown", "Asleep", "Awake", "Dead", "Alive"],
-    //     initialValue: getEnumMemberName(NodeStatus, node.status)
-    //  }))
+    td.AddPropertyIf(node.zwavePlusVersion, "zwavePlusVersion", "", "Z-Wave+ Version", DataType.Number);
 
     // general purpose node management
-    td.AddProperty("checkLifelineHealth", ManageTypeHealthCheck, "Check connection health", DataType.Bool,
+    td.AddProperty("checkLifelineHealth", "", "Check connection health", DataType.Bool,
         "Initiates tests to check the health of the connection between the controller and this node and returns the results. " +
         "This should NOT be done while there is a lot of traffic on the network because it will negatively impact the test results")
-    td.AddProperty("ping", ManageTypePing, "Ping the device", DataType.Bool)
-    td.AddProperty("refreshInfo", ManageTypeRefresh, "Refresh Device Info", DataType.Bool,
+    td.AddProperty("ping", ActionTypes.Ping, "Ping the device", DataType.Bool)
+    td.AddProperty("refreshInfo", ActionTypes.Refresh, "Refresh Device Info", DataType.Bool,
         "Resets (almost) all information about this node and forces a fresh interview. " +
         "After this action, the node will no longer be ready. This can take a long time.")
     td.AddProperty("refreshValues", "", "Refresh Device Values", DataType.Bool,
@@ -196,42 +177,44 @@ export function parseNode(zwapi: ZWAPI, node: ZWaveNode, vidLogFile?: number): T
         "Use sparingly. This can take a long time and generate a lot of traffic.")
 
     //--- Step 4: add properties, events, and actions from the ValueIDs
+
     let vids = node.getDefinedValueIDs()
 
     for (let vid of vids) {
-        let vidValue = node.getValue(vid)
+        let va = getVidAffordance(node, vid)
         let vidMeta = node.getValueMetadata(vid)
 
-        let propID = getPropID(vid, vidMeta)
+        // let pt = getPropType(node, vid)
+        let propID = getPropID(vid)
         // the vid is either config, attr, action or event based on CC
-        let vidType = getVidType(node, vid)
-        if (vidType) {
-            logVid(vidLogFile, node, vid, propID, vidType)
+        // let vidType = getVidType(node, vid)
+        if (va) {
+            logVid(vidLogFile, node, vid, propID, va)
         }
 
         let tditem: any
-        switch (vidType) {
+        switch (va?.affordance) {
             case "action": {
                 // TODO: basic set should be an action?
-                tditem = addAction(td, node, vid, propID)
+                tditem = addAction(td, node, vid, propID, va)
             }
                 break;
             case "event": {
                 // transient values
-                if (vidValue != undefined || vidMeta.default != undefined || vidMeta.readable == false) {
-                    tditem = addEvent(td, node, vid, propID)
-                }
+                // if (vidValue != undefined || vidMeta.default != undefined || vidMeta.readable == false) {
+                tditem = addEvent(td, node, vid, propID, va)
+                // }
             }
                 break;
             case "config": {
                 // if there is no value then don't include the property
-                if (vidValue != undefined || vidMeta.default != undefined) {
-                    tditem = addConfig(td, node, vid, propID)
-                }
+                // if (vidValue != undefined || vidMeta.default != undefined) {
+                tditem = addConfig(td, node, vid, propID, va)
+                // }
             }
                 break;
             case "attr": {
-                tditem = addAttribute(td, node, vid, propID)
+                tditem = addAttribute(td, node, vid, propID, va)
             }
                 break;
             default: {
@@ -329,7 +312,6 @@ function SetDataSchema(ds: DataSchema | undefined, node: ZWaveNode, vid: Transla
             break;
         default: {
             // TBD: does this mean there is no schema, eg no data, eg not a value?
-            let vmn = vidMeta as ValueMetadataAny
             ds.type = DataType.Unknown
         }
     }
@@ -398,12 +380,12 @@ function SetDataSchema(ds: DataSchema | undefined, node: ZWaveNode, vid: Transla
     }
 }
 
-
-// Split the deviceID into homeID and nodeID
-export function splitDeviceID(deviceID: string): [string, number | undefined] {
-    let parts = deviceID.split(".")
-    if (parts.length == 2) {
-        return [parts[0], parseInt(parts[1])]
-    }
-    return ["", undefined]
-}
+//
+// // Split the deviceID into homeID and nodeID
+// export function splitDeviceID(deviceID: string): [string, number | undefined] {
+//     let parts = deviceID.split(".")
+//     if (parts.length == 2) {
+//         return [parts[0], parseInt(parts[1])]
+//     }
+//     return ["", undefined]
+// }

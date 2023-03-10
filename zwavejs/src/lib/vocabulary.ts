@@ -3,106 +3,112 @@
 
 // FIXME: use vocab generated from capnp 
 
-// ActionTypes standardized operator action @types
-export declare enum ActionTypes {
-    Lock = "lock",        // [bool] lock/unlock action
-    Mute = "mute",        // [bool] AV mute onoff (0,1) or toggle
-    On = "on",            // [number] lights 0-100
-    Open = "open",        // [number] open valve 0-100
-    Play = "play",        // [bool] AV play/pause action
-    SetValue = "value",   // [number] set generic value
-    Volume = "volume",    // [number] set new volume 0.100%
+// Standardize @action types for operators.
+// By default these are restricted to users with the operator role permissions.
+export enum ActionTypes {
+    AVChannel = "avChannel",          // <number> preset channel selection
+    AVMute = "avMute",                // <boolean> AV mute (true) or unmute (false)
+    AVPlay = "avPlay",                // <boolean> AV play (true) or pause (false)
+    AVNext = "avNext",                // [] next channel/track
+    AVPrev = "avPrev",                // [] previous channel/track
+    AVVolume = "avVolume",            // <number> set new AV volume 0.100%
+    Lock = "lock",                    // <boolean> lock (true) or unlock (false)
+    Switch = "switch",                  // <boolean> switch on (1), off (0)
+    Ping = "ping",                    // [] contact the device to see if it is reachable
+    Refresh = "refresh",              // [] refresh device info
+    Set = "set",                      // <number> set a value
 }
 
+
 // HiveOT device types
-export const DeviceTypeAdapter = "adapter"        // software adapter or service, eg virtual device
-export const DeviceTypeAVControl = "avControl"      // Audio/Video controller
-export const DeviceTypeAVReceiver = "avReceiver"     // Node is a (not so) smart radio/receiver/amp (eg, denon)
-export const DeviceTypeBeacon = "beacon"         // device is a location beacon
-export const DeviceTypeButton = "button"         // device is a physical button device with one or more buttons
-export const DeviceTypeCamera = "camera"         // Node with camera
-export const DeviceTypeCarbonMonoxideDetector = "coDetector"
-export const DeviceTypeComputer = "computer"       // General purpose computer
-export const DeviceTypeDimmer = "dimmer"         // light dimmer
-export const DeviceTypeDoorWindowSensor = "doorWindowSensor"
-export const DeviceTypeGateway = "gateway"        // device is a gateway for other nodes (onewire, zwave, etc)
-export const DeviceTypeKeypad = "keypad"         // Entry key pad
-export const DeviceTypeLock = "lock"             // Electronic door lock
-export const DeviceTypeMultisensor = "multisensor"    // Node with multiple sensors
-export const DeviceTypeNetRepeater = "netRepeater"    // Node is a zwave or other network repeater
-export const DeviceTypeNetRouter = "netRouter"      // Node is a network router
-export const DeviceTypeNetSwitch = "netSwitch"      // Node is a network switch
-export const DeviceTypeNetWifiAP = "wifiAP"         // Node is a wifi access point
-export const DeviceTypeOnOffSwitch = "onOffSwitch"    // Node is a physical on/off switch
-export const DeviceTypePhone = "phone"          // device is a phone
-export const DeviceTypePowerMeter = "powerMeter"     // Node is a power meter
-export const DeviceTypePushbutton = "pushbutton"     // Node is a push button switch
-export const DeviceTypeSceneController = "sceneController"   // Node is a scene controller for other devices
-export const DeviceTypeSensor = "sensor"         // Node is a single sensor (volt,...)
-export const DeviceTypeService = "service"        // Node provides a service
-export const DeviceTypeSmartlight = "smartlight"     // Node is a smart light, eg philips hue
-export const DeviceTypeSmokeDetector = "smokeDetector"  // Node is a smoke detector
-export const DeviceTypeThermometer = "thermometer"    // Node is a temperature meter
-export const DeviceTypeThermostat = "thermostat"     // Node is a thermostat control unit
-export const DeviceTypeTV = "tv"             // Node is a (not so) smart TV
-export const DeviceTypeUnknown = "unknown"        // type not identified
-export const DeviceTypeWallpaper = "wallpaper"      // Node is a wallpaper montage of multiple images
-export const DeviceTypeWaterValve = "waterValve"     // Water valve control unit
-export const DeviceTypeWeatherService = "weatherService" // Node is a service providing current and forecasted weather
-export const DeviceTypeWeatherStation = "weatherStation" // Node is a weatherstation device
-export const DeviceTypeWeighScale = "weighScale"     // Node is an electronic weight scale
+export enum DeviceTypes {
+    TypeAdapter = "adapter",       // software adapter or service, eg virtual device
+    AVControl = "avControl",    // Audio/Video controller
+    AVReceiver = "avReceiver",    // Node is a (not so) smart radio/receiver/amp (eg, denon)
+    Beacon = "beacon",         // device is a location beacon
+    Button = "button",        // device is a physical button device with one or more buttons
+    Camera = "camera",       // Node with camera
+    CarbonMonoxideDetector = "coDetector",
+    Computer = "computer",       // General purpose computer
+    Dimmer = "dimmer",      // light dimmer
+    DoorWindowSensor = "doorWindowSensor",
+    Gateway = "gateway",       // device is a gateway for other nodes (onewire, zwave, etc)
+    Keypad = "keypad",     // Entry key pad
+    Lock = "lock",    // Electronic door lock
+    Multisensor = "multisensor",   // Node with multiple sensors
+    NetRepeater = "netRepeater",  // Node is a zwave or other network repeater
+    NetRouter = "netRouter",      // Node is a network router
+    NetSwitch = "netSwitch",     // Node is a network switch
+    NetWifiAP = "wifiAP",    // Node is a wifi access point
+    OnOffSwitch = "onOffSwitch",    // Node is a physical on/off switch
+    Phone = "phone",      // device is a phone
+    PowerMeter = "powerMeter",     // Node is a power meter
+    Pushbutton = "pushbutton",    // Node is a push button switch
+    SceneController = "sceneController", // Node is a scene controller for other devices
+    Sensor = "sensor",     // Node is a single sensor (volt,...)
+    Service = "service",     // Node provides a service
+    Smartlight = "smartlight",    // Node is a smart light, eg philips hue
+    SmokeDetector = "smokeDetector",  // Node is a smoke detector
+    Thermometer = "thermometer", // Node is a temperature meter
+    Thermostat = "thermostat",   // Node is a thermostat control unit
+    TV = "tv",      // Node is a (not so) smart TV
+    Unknown = "unknown",       // type not identified
+    WaterValve = "waterValve",     // Water valve control unit
+    WeatherService = "weatherService",// Node is a service providing current and forecasted weather
+    WeatherStation = "weatherStation",// Node is a weatherstation device
+    WeighScale = "weighScale",   // Node is an electronic weight scale
+}
 
-// standardized sensor event types
-// standardized event @types when sensor or actuator values change
-export const EventTypeAcceleration = "acceleration"
-export const EventTypeAirQuality = "airQuality"
-export const EventTypeAlarm = "alarm"       // motion or other alarm state changed
-export const EventTypeAtmosphericPressure = "atmosphericPressure"
-export const EventTypeBinarySwitch = "binarySwitch"
-export const EventTypeCarbonDioxideLevel = "co2level"
-export const EventTypeCarbonMonoxideLevel = "coLevel"
-export const EventTypeCurrent = "current"
-export const EventTypeDewpoint = "dewpoint"
-export const EventTypeEnergy = "energy"
-export const EventTypeHeatIndex = "heatIndex"
-export const EventTypeHumidex = "humidity"
-export const EventTypeLevel = "level"            // [number] generic sensor level
-export const EventTypeLatLon = "latlon"          // [lat, lon] location change
-export const EventTypeLowBattery = "lowBattery"
-export const EventTypeLuminance = "luminance"    // [number]
-export const EventTypeMultilevelSwitch = "multiLevelSwitch"
-export const EventTypePower = "power"         // power meter
-export const EventTypePushButton = "pushButton"
-export const EventTypeSound = "sound"            // sound detector
-export const EventTypeTemperature = "temperature"
-export const EventTypeUV = "ultraviolet"
-export const EventTypeVibration = "vibration"   // vibration sensor or alarm
-export const EventTypeValue = "value"    // generic sensor value event
-export const EventTypeVoltage = "voltage"
-export const EventTypeWaterLevel = "waterLevel"
-export const EventTypeWindHeading = "windHeading"
-export const EventTypeWindSpeed = "windSpeed"
 
-// standardized management property @types
-export const ManageTypeHealthCheck = "healthCheck"  // []action is to initiate a health check
-export const ManageTypePing = "ping"        // [] action is to check if the destination is reachable
-export const ManageTypeReset = "reset"      // [] action is to reset the device
-export const ManageTypeRefresh = "refresh"  // [] action is to refresh the device info and send a new TD
-
+// Standardized sensor event @type values.
+// Intended for grouping events of similar types.
+export enum EventTypes {
+    Acceleration = "acceleration",  // <boolean> acceleration in m/s2
+    AirQuality = "airQuality",      // <number> in 1-10?
+    Alarm = "alarm",                // <boolean> other alarm state changed
+    AtmosphericPressure = "atmosphericPressure", // <number> in mbar (or psi)
+    CarbonDioxideLevel = "co2level", // <number>
+    CarbonMonoxideLevel = "coLevel", // <number>
+    Current = "current",         // <number> Electrical current report in A
+    Dewpoint = "dewpoint",       // <number> dew point in degrees
+    Energy = "energy",           // <number> Energy report in KWH
+    HeatIndex = "heatIndex",     // <number> heat index in degrees
+    Humidex = "humidity",        // <number> humidex in degrees
+    LatLon = "latlon",           // [lat, lon] location change
+    LowBattery = "lowBattery",   // <boolean> low battery alarm enabled/disabled
+    Luminance = "luminance",     // <number> luminance sensor in ?
+    Motion = "motion",           // [boolean] motion on/off detected
+    Power = "power",             // <number> power report in Watt
+    PushButton = "pushButton",   // [<number>] pushbutton <N> was pressed. Where N is for multi-switches
+    Switch = "switch",           // <boolean> binary switch status changed
+    Scene = "scene",             // <number> scene activated by scene controller
+    Status = "status",           // <string> node status "awake", "sleeping", "dead", "alive"
+    Sound = "sound",             // <number> sound detected with loudness
+    Temperature = "temperature", // <number> temperature report in degrees C (or F or K)
+    UV = "ultraviolet",          // <number> UV sensor in ?
+    Vibration = "vibration",     // <boolean> vibration sensor alarm started (true), ended (false)
+    Value = "value",             // <number> generic sensor value event
+    Voltage = "voltage",         // <number> electrical voltage report in V
+    WaterLevel = "waterLevel",   // <number> Water level report in meters (or yards, feet, ...)
+    WindHeading = "windHeading", // <number> Wind direction in 0-359 degrees
+    WindSpeed = "windSpeed",     // <number> Wind speed in m/s (or kph, mph)
+}
 
 // standardized property attribute @types from HiveOT vocabulary
-export  enum PropTypes {
-   AlarmType = "alarmType",
-   CPULevel = "cpuLevel",
-   DateTime = "dateTime",
-   BatteryLevel = "batteryLevel",
-   FirmwareVersion = "firmwareVersion",
-   HardwareVersion = "hardwareVersion", // version of the physical device
-   Latency = "latency",
-   Manufacturer = "manufacturer",       // [string] device manufacturer
-   ProductName = "productName",
-   SignalStrength = "signalStrength",
-   SoftwareVersion = "softwareVersion", // application software
+export enum PropTypes {
+    AlarmType = "alarmType",             // <string> from enum
+    CPULevel = "cpuLevel",               // <number> in %
+    DateTime = "dateTime",               // <string> ISO8601
+    BatteryLevel = "batteryLevel",       // <number> in %
+    FirmwareVersion = "firmwareVersion", // <string>
+    HardwareVersion = "hardwareVersion", // <string> version of the physical device
+    IPAddress = "ipAddress",
+    Latency = "latency",                 // <number> in msec (or usec, seconds)
+    MACAddress = "macAddress",
+    Manufacturer = "manufacturer",       // <string> device manufacturer
+    ProductName = "productName",         // <string>
+    SignalStrength = "signalStrength",   // <number> in dBm (dB millivolts per meter)
+    SoftwareVersion = "softwareVersion", // <string> application software
 }
 
 /**
@@ -124,7 +130,7 @@ export  enum PropTypes {
 // export const VocabGatewayAddress = "gatewayAddress" // [string] the 3rd party gateway address
 // export const VocabHostname = "hostname"       // [string] network device hostname
 // export const VocabHue = "hue"            //
-// // export const VocabHumidex = "humidex"        // [number] unit=C or F
+// // export const VocabHumidex = "humidex"        // <number> unit=C or F
 // // export const VocabHumidity = "humidity"       // [string] %
 // export const VocabImage = "image"            // [byteArray] unit=jpg,gif,png
 // export const VocabLocationName = "locationName"   // [string] name of a location
@@ -145,7 +151,6 @@ export  enum PropTypes {
 // export const VocabSubnet = "subnet" // IP subnets configuration
 // export const VocabUnknown = ""    // Not a known output
 // export const VocabURL = "url" // node URL
-
 
 
 /**
@@ -172,6 +177,7 @@ export const TDVersion = "version"
 
 // additional data schema vocab
 export const TDConst = "const"
+
 export enum DataType {
     Bool = "boolean",
     AnyURI = "anyURI",
@@ -184,6 +190,7 @@ export enum DataType {
     UnsignedInt = "unsignedInt",
     Unknown = ""
 }
+
 // WoTDouble              = "double" // min, max of number are doubles
 export const TDEnum = "enum"
 export const TDFormat = "format"
