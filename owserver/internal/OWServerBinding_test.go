@@ -91,7 +91,7 @@ func TestPoll(t *testing.T) {
 		func(ev *thing.ThingValue) {
 			if ev.ID == vocab.WoTProperties {
 				var value map[string][]byte
-				err2 := json.Unmarshal(ev.ValueJSON, &value)
+				err2 := json.Unmarshal(ev.Data, &value)
 				assert.NoError(t, err2)
 				//for propName, propValue := range value {
 				//	pv := string(propValue)
@@ -99,7 +99,7 @@ func TestPoll(t *testing.T) {
 				//}
 			} else {
 				var value interface{}
-				err2 := json.Unmarshal(ev.ValueJSON, &value)
+				err2 := json.Unmarshal(ev.Data, &value)
 				assert.NoError(t, err2)
 			}
 			tdCount.Add(1)

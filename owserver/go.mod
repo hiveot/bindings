@@ -3,13 +3,13 @@ module github.com/hiveot/bindings/owserver
 go 1.19
 
 require (
+	capnproto.org/go/capnp/v3 v3.0.0-alpha.24
 	github.com/hiveot/hub v0.0.0-20230225055025-2dbb9b760fdc
 	github.com/sirupsen/logrus v1.9.0
-	github.com/stretchr/testify v1.8.1
+	github.com/stretchr/testify v1.8.2
 )
 
 require (
-	capnproto.org/go/capnp/v3 v3.0.0-alpha.24 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/gobwas/httphead v0.1.0 // indirect
 	github.com/gobwas/pool v0.2.1 // indirect

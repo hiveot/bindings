@@ -6,6 +6,7 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"fmt"
+	"github.com/hiveot/hub/api/go/hubapi"
 	"sync"
 	"sync/atomic"
 
@@ -88,7 +89,7 @@ func (binding *OWServerBinding) Start(ctx context.Context) error {
 
 	td := binding.CreateBindingTD()
 	tdDoc, _ := json.Marshal(td)
-	err := binding.pubsub.PubTD(ctx, td.ID, tdDoc)
+	err := binding.pubsub.PubEvent(ctx, td.ID, hubapi.EventNameTD, tdDoc)
 	if err != nil {
 		return err
 	}

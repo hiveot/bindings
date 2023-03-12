@@ -3,6 +3,7 @@ package internal
 import (
 	"context"
 	"encoding/json"
+	"github.com/hiveot/hub/api/go/hubapi"
 
 	"github.com/hiveot/bindings/owserver/internal/eds"
 	"github.com/hiveot/hub/api/go/vocab"
@@ -34,13 +35,13 @@ func (binding *OWServerBinding) CreateTDFromNode(node *eds.OneWireNode) (tdoc *t
 			// only add data schema if the event carries a value
 			if attr.DataType != vocab.WoTDataTypeNone {
 				evAff.Data = &thing.DataSchema{
-					Type: attr.DataType,
-					Unit: attr.Unit,
+					Type:         attr.DataType,
+					Unit:         attr.Unit,
+					InitialValue: attr.Value,
 				}
-			}
-			evAff.InitialValue = attr.Value
-			if attr.Unit != "" {
-				evAff.InitialValue += " " + attr.Unit
+				if attr.Unit != "" {
+					evAff.Data.InitialValue += " " + attr.Unit
+				}
 			}
 
 		} else if attr.IsActuator {
@@ -89,7 +90,7 @@ func (binding *OWServerBinding) PublishThings(nodes []*eds.OneWireNode) (err err
 	for _, node := range nodes {
 		td := binding.CreateTDFromNode(node)
 		tdDoc, _ := json.Marshal(td)
-		err2 := binding.pubsub.PubTD(ctx, td.ID, tdDoc)
+		err2 := binding.pubsub.PubEvent(ctx, td.ID, hubapi.EventNameTD, tdDoc)
 		if err2 != nil {
 			err = err2
 		}

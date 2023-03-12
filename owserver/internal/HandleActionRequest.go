@@ -15,7 +15,7 @@ import (
 func (binding *OWServerBinding) HandleActionRequest(action *thing.ThingValue) {
 	var attr eds.OneWireAttr
 	logrus.Infof("Pub=%s, Thing=%s. Action=%s Value=%s",
-		action.PublisherID, action.ThingID, action.ID, action.ValueJSON)
+		action.PublisherID, action.ThingID, action.ID, action.Data)
 
 	// If the action name is converted to a standardized vocabulary then convert the name
 	// to the EDS writable property name.
@@ -27,7 +27,7 @@ func (binding *OWServerBinding) HandleActionRequest(action *thing.ThingValue) {
 	edsName := action.ID
 
 	// determine the value. Booleans are submitted as integers
-	actionValue := action.ValueJSON
+	actionValue := action.Data
 
 	node, found := binding.nodes[deviceID]
 	if found {

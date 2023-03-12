@@ -2,6 +2,8 @@ package internal
 
 import (
 	"context"
+	"encoding/json"
+	"github.com/hiveot/hub/api/go/hubapi"
 	"time"
 
 	"github.com/hiveot/bindings/owserver/internal/eds"
@@ -66,7 +68,8 @@ func (binding *OWServerBinding) PublishNodeValues(nodes []*eds.OneWireNode) (err
 			}
 		}
 		if len(attrMap) > 0 {
-			err = binding.pubsub.PubProperties(ctx, thingID, attrMap)
+			attrMapJSON, _ := json.Marshal(attrMap)
+			err = binding.pubsub.PubEvent(ctx, thingID, hubapi.EventNameProperties, attrMapJSON)
 		}
 	}
 	return err
