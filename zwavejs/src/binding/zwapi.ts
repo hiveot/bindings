@@ -2,9 +2,9 @@ import {
     Driver,
     HealNodeStatus,
     InclusionResult,
-    NodeStatistics,
     NodeStatus,
     TranslatedValueID,
+    ValueMetadataNumeric,
     ZWaveNode,
     ZWaveNodeMetadataUpdatedArgs,
     ZWaveNodeValueAddedArgs,
@@ -14,6 +14,7 @@ import {
 } from "zwave-js";
 import md5 from "md5";
 
+// FIXME: from config
 const DefaultNetworkPassword = "My name is groot";
 
 // ZWAPI is a wrapper around zwave-js for use by the HiveOT binding.
@@ -35,10 +36,6 @@ export class ZWAPI {
 
     // discovered nodes
     nodes: Map<string, ZWaveNode>;
-
-    firmwareUpdateState: string | undefined = undefined;
-    healNetworkState: string | undefined = undefined;
-    inclusionState: string | undefined = undefined;
 
     constructor(
         // handler for node VID or Metadata updates
@@ -105,7 +102,6 @@ export class ZWAPI {
         // Start the driver. To await this method, put this line into an async method
         // TODO: take port from config
         // TODO: auto-detect port if no config is provided
-        // TODO: sleeping nodes should not block other nodes from using (all nodes ready event)
         this.driver = new Driver("/dev/ttyACM0", options);
 
         // You must add a handler for the error event before starting the driver
@@ -268,7 +264,7 @@ export class ZWAPI {
         });
 
         node.on("metadata updated", (node: ZWaveNode, args: ZWaveNodeMetadataUpdatedArgs) => {
-            // FIXME: this is invoked event when metadata isn't updated. What to do?
+            // FIXME: this is invoked even when metadata isn't updated. What to do?
             // this.onNodeUpdate(node)
             let newValue = node.getValue(args)
             this.onValueUpdate(node, args, newValue)
@@ -285,12 +281,14 @@ export class ZWAPI {
             this.onStateUpdate(node, "sleeping")
         });
 
-        node.on("statistics updated", (node: ZWaveNode, args: NodeStatistics) => {
-            // console.info("Node ", node.id, " stats updated: args=", args);
-        });
+        // node.on("statistics updated", (node: ZWaveNode, args: NodeStatistics) => {
+        //     // console.info("Node ", node.id, " stats updated: args=", args);
+        // });
 
         node.on("value added", (node: ZWaveNode, args: ZWaveNodeValueAddedArgs) => {
-            // FIXME: update the TD
+            // FIXME: add the VID to the TD
+            console.info(`Node ${node.id}, value added: propName=${args.propertyName}, value=${args.newValue}`);
+            this.onNodeUpdate(node)
             this.onValueUpdate(node, args, args.newValue)
         });
 
@@ -305,8 +303,7 @@ export class ZWAPI {
         });
 
         node.on("value updated", (node: ZWaveNode, args: ZWaveNodeValueUpdatedArgs) => {
-            let vidMeta = node.getValueMetadata(args)
-            console.info("Node ", node.id, " value updated: args=", args, "vidMeta=", vidMeta);
+            // console.info("Node ", node.id, " value updated: args=", args, "vidMeta=", vidMeta);
             this.onValueUpdate(node, args, args.newValue)
         });
 
@@ -314,14 +311,6 @@ export class ZWAPI {
             console.info(`Node ${node.id}: wake up`);
             this.onStateUpdate(node, "awake")
         });
-    }
-
-    // internal update of node status
-    _updateNodeStatus(node: ZWaveNode) {
-        // TODO: handle as event
-        if (node) {
-            console.info(`Node ${node.id}: EVENT status=${node.status}`);
-        }
     }
 
 
@@ -333,17 +322,27 @@ export class ZWAPI {
     setValue(node: ZWaveNode, vid: TranslatedValueID, params: string) {
         let dataToSet: any
         let vidMeta = node.getValueMetadata(vid)
+
         switch (vidMeta.type) {
             case "boolean":
-                dataToSet = Boolean(params)
+                dataToSet = !(params.toLowerCase() == "false" || params == "0")
                 break;
             case "number":
             case "color":
             case "duration":
-                dataToSet = Number(params)
+                // convert enum names to values
+                let numMeta = vidMeta as ValueMetadataNumeric
+                if (numMeta && numMeta.states) {
+                    dataToSet = getEnumFromMemberName(numMeta.states, params)
+                } else {
+                    dataToSet = Number(params)
+                }
+                if (isNaN(dataToSet)) {
+                    dataToSet = undefined
+                }
                 break;
             case "string":
-                dataToSet = params;
+                dataToSet = String(params);
                 break
             case "any":
                 dataToSet = params;
@@ -352,7 +351,8 @@ export class ZWAPI {
             case "buffer":
             case "number[]":
             case "string[]":
-                console.error(`setValue: Unsupport type ${vidMeta.type}`)
+                // TODO: handle arrays
+                console.error(`setValue: Unsupported type ${vidMeta.type}`)
                 break;
         }
         if (dataToSet != undefined) {
@@ -369,4 +369,19 @@ export class ZWAPI {
                 })
         }
     }
+
 }
+
+// Revert the enum name to its number
+// This is the opposite of getEnumMemberName
+function getEnumFromMemberName(enumeration: Record<number, string>, name: string): number | undefined {
+    for (let key in enumeration) {
+        let val = enumeration[key]
+        if (val.toLowerCase() == name.toLowerCase()) {
+            return Number(key)
+        }
+    }
+    // in case the enum is optional and the name is a number already
+    return Number(name)
+}
+

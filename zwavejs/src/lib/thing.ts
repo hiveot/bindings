@@ -143,14 +143,16 @@ export class ThingTD extends Object {
     // describes the parameter(s).
     //
     // @param id is the key under which it is stored in the action map.
-    // @param actionType one of the action types from the vocabulary
+    // @param actionType one of the ActionTypes from the vocabulary. Use "" if not known
     // @param title is the short display title of the action.
     // @param description optional detailed description of the action
     // @param input with optional dataschema of the action input data
     AddAction(id: string, actionType: string, title: string, description?: string, input?: DataSchema): ActionAffordance {
         let action = new ActionAffordance()
         action.id = id;
-        action["@type"] = actionType
+        if (actionType) {
+            action["@type"] = actionType
+        }
         action.title = title
         action.description = description
         action.input = input
@@ -163,14 +165,16 @@ export class ThingTD extends Object {
     //
     // @param id is the event instance ID under which it is stored in the event map.
     //        This can be anything arbitrary as long as the TD and value event use the same ID.
-    // @param eventType one of the event @types from the vocabulary
+    // @param eventType one of the EventTypes from the vocabulary or "" if not known
     // @param title is the short display title of the action.
     // @param description optional detailed description of the action
     // @param dataSchema optional event data schema
     AddEvent(id: string, eventType: string, title: string, description?: string, dataSchema?: DataSchema): EventAffordance {
         let ev = new EventAffordance()
         ev.id = id;
-        ev["@type"] = eventType
+        if (eventType) {
+            ev["@type"] = eventType
+        }
         ev.title = title ? title : id;
         ev.description = description
         ev.data = dataSchema
@@ -183,14 +187,16 @@ export class ThingTD extends Object {
     // By default this property is read-only. (eg an attribute)
     //
     // @param id is the instance ID under which it is stored in the property affordance map.
-    // @param propTypeName is the vocabulary defined property type or undefined when not defined
-    // @param title is the title used in the property. Leave empty to use the name.
+    // @param propType is one of the PropertyTypes in the vocabulary or "" if not known
+    // @param title is the title used in the property.
     // @param dataType is the type of data the property holds, DataTypeNumber, ..Object, ..Array, ..String, ..Integer, ..Boolean or null
     // @param initialValue the value at time of creation, for testing and debugging
-    AddProperty(id: string, propTypeName: string | undefined, title: string | undefined, dataType: DataType, initialValue?: any): PropertyAffordance {
+    AddProperty(id: string, propType: string, title: string, dataType: DataType, initialValue?: any): PropertyAffordance {
         let prop = new PropertyAffordance()
         prop.id = id;
-        prop["@type"] = propTypeName
+        if (propType) {
+            prop["@type"] = propType
+        }
         prop.type = dataType;
         prop.title = title ? title : id;
         prop.readOnly = true;
@@ -206,15 +212,11 @@ export class ThingTD extends Object {
     //
     // @param initialValue add the attribute if the initial value is not undefined
     // @param id is the instance ID under which it is stored in the property affordance map.
-    // @param propType is the vocabulary defined property type or "" when not defined
+    // @param propType is one of the PropertyTypes in the vocabulary or "" if not known
     // @param title is the title used in the property. Leave empty to use the name.
     // @param dataType is the type of data the property holds, DataTypeNumber, ..Object, ..Array, ..String, ..Integer, ..Boolean or null
-    AddPropertyIf(
-        initialValue: any,
-        id: string,
-        propType: string,
-        title: string | undefined,
-        dataType: DataType): PropertyAffordance | undefined {
+    AddPropertyIf(initialValue: any, id: string, propType: string, title: string,
+                  dataType: DataType): PropertyAffordance | undefined {
 
         if (initialValue != undefined) {
             return this.AddProperty(id, propType, title, dataType, initialValue)

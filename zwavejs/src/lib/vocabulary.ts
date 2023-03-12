@@ -63,6 +63,10 @@ export enum DeviceTypes {
 // Standardized sensor event @type values.
 // Intended for grouping events of similar types.
 export enum EventTypes {
+    //
+    Properties = "properties", // standardized event with JSON properties key-value map
+    TD = "td", // standardized event with JSON TD document
+    //
     Acceleration = "acceleration",  // <boolean> acceleration in m/s2
     AirQuality = "airQuality",      // <number> in 1-10?
     Alarm = "alarm",                // <boolean> other alarm state changed
@@ -106,6 +110,7 @@ export enum PropTypes {
     Latency = "latency",                 // <number> in msec (or usec, seconds)
     MACAddress = "macAddress",
     Manufacturer = "manufacturer",       // <string> device manufacturer
+    Name = "name",                       // device name
     ProductName = "productName",         // <string>
     SignalStrength = "signalStrength",   // <number> in dBm (dB millivolts per meter)
     SoftwareVersion = "softwareVersion", // <string> application software

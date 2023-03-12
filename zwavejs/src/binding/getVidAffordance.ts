@@ -5,7 +5,7 @@ import {ActionTypes, EventTypes} from "../lib/vocabulary.js";
 
 // ValueID to Affordance classification
 export interface VidAffordance {
-    atType: string, // @type of the property, event or action
+    atType: string, // @type of the property, event or action, "" if not known
     affordance: "action" | "event" | "attr" | "config" | undefined
 }
 

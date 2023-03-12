@@ -25,7 +25,7 @@ import (
 	"github.com/hiveot/bindings/zwavejs/cmd/hapi/jasm"
 )
 
-// HubAPI provides JS callable methods to the Hub
+// HubAPI provides JS callable methods to the Hub using a websocket connection to the Hub
 type HubAPI struct {
 	// instance ID of the service using this API
 	serviceID string
@@ -37,14 +37,15 @@ type HubAPI struct {
 }
 
 // Obtain the pubsub API for use by services.
-//
-// If no valid capability has been obtained yet, one is requested from the gateway.
+// On the first call this requests the capability from the gateway with the serviceID as the publisherID
+// Successive calls reuse this capability.
 // Note that this requires a valid authentication by the gateway.
 func (hapi *HubAPI) getServicePubSub() (pubsub.IServicePubSub, error) {
 	var err error
 	if !hapi.gwSession.IsValid() {
 		return nil, errors.New("not connected to the gateway")
 	}
+	// re-use the instance
 	if hapi._servicePubSub != nil {
 		return hapi._servicePubSub, nil
 	}
@@ -119,16 +120,6 @@ func (hapi *HubAPI) Disconnect() {
 	}
 }
 
-// Ping is the async method to ping the gateway
-func (hapi *HubAPI) Ping(this js.Value, args []js.Value) interface{} {
-	return jasm.Await(func() (js.Value, error) {
-		var info gateway.ClientInfo
-		gwc := capnpclient.NewGatewaySessionFromCapnpCapability(hapi.gwSession)
-		info, err := gwc.Ping(context.Background())
-		return js.ValueOf(info), err
-	})
-}
-
 // Login is the async method to login to the gateway
 // args: (loginID string, password string)
 func (hapi *HubAPI) Login(this js.Value, args []js.Value) interface{} {
@@ -146,69 +137,32 @@ func (hapi *HubAPI) Login(this js.Value, args []js.Value) interface{} {
 	})
 }
 
+// Ping is the async method to ping the gateway
+func (hapi *HubAPI) Ping(this js.Value, args []js.Value) interface{} {
+	return jasm.Await(func() (js.Value, error) {
+		var info gateway.ClientInfo
+		gwc := capnpclient.NewGatewaySessionFromCapnpCapability(hapi.gwSession)
+		info, err := gwc.Ping(context.Background())
+		return js.ValueOf(info), err
+	})
+}
+
 // PubEvent Async method for publishing the events
 // args[0] = thingID
 // args[1] = event name
-// args[2] = event in json format
+// args[2] = event data serialized
 func (hapi *HubAPI) PubEvent(this js.Value, args []js.Value) interface{} {
 	return jasm.Await(func() (js.Value, error) {
 
 		thingID := args[0].String()
 		name := args[1].String()
 		ev := args[2].String()
-		logrus.Infof("publishing event for thing id=%s, event name=%s, ev=%s", thingID, name, ev)
+		logrus.Infof("publishing event for thing id=%s, event name=%s, size=%d", thingID, name, len(ev))
 		svcPubSub, err := hapi.getServicePubSub()
 		if err != nil {
 			return this, err
 		}
 		err = svcPubSub.PubEvent(context.Background(), thingID, name, []byte(ev))
-		return this, err
-	})
-}
-
-// PubProperties Async method for publishing thing properties
-// args[0] = thingID
-// args[1] = map<key:value>
-func (hapi *HubAPI) PubProperties(this js.Value, args []js.Value) interface{} {
-	return jasm.Await(func() (js.Value, error) {
-		props := make(map[string][]byte)
-
-		thingID := args[0].String()
-		vo := js.ValueOf(args[1])
-		logrus.Infof("vo=%s", vo)
-
-		propslen := args[1].Length()
-		for i := 0; i < propslen; i++ {
-			kv := args[1].Index(i)
-			logrus.Infof("kv=%s", kv)
-			// FIXME: how to get the object property name?
-		}
-		logrus.Infof("publishing properties for thing id=%s", thingID)
-		svcPubSub, err := hapi.getServicePubSub()
-		if err != nil {
-			return this, err
-		}
-		err = svcPubSub.PubProperties(context.Background(), thingID, props)
-		return this, err
-	})
-}
-
-// PubTD Async method for publishing the TD document from JS
-// args[0] = thingID
-// args[1] = deviceType
-// args[2] = td in json format
-func (hapi *HubAPI) PubTD(this js.Value, args []js.Value) interface{} {
-	return jasm.Await(func() (js.Value, error) {
-
-		thingID := args[0].String()
-		deviceType := args[1].String()
-		td := args[2].String() // td
-		logrus.Infof("publishing td id=%s, dtype=%s", thingID, deviceType)
-		svcPubSub, err := hapi.getServicePubSub()
-		if err != nil {
-			return this, err
-		}
-		err = svcPubSub.PubTD(context.Background(), thingID, []byte(td))
 		return this, err
 	})
 }
@@ -219,15 +173,14 @@ func (hapi *HubAPI) SubActions(this js.Value, args []js.Value) interface{} {
 	return jasm.Await(func() (js.Value, error) {
 
 		handler := args[0]
-		logrus.Infof("subscribing to actions of publisher %s using handler: %s", hapi.serviceID,
-			handler.Type())
+		logrus.Infof("subscribing to actions of things from publisher %s", hapi.serviceID)
 		svcPubSub, err := hapi.getServicePubSub()
 		if err != nil {
 			return this, err
 		}
 		err = svcPubSub.SubAction(context.Background(), "", "",
 			func(tv *thing.ThingValue) {
-				handler.Invoke(tv.ThingID, tv.ID, string(tv.ValueJSON))
+				handler.Invoke(tv.ThingID, tv.ID, string(tv.Data))
 			})
 		return this, err
 	})

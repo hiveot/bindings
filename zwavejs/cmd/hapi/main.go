@@ -18,9 +18,7 @@ func Gomain() {
 	// Register the Go Gateway API for use by JS
 	js.Global().Set("connect", js.FuncOf(hapi.Connect))
 	js.Global().Set("login", js.FuncOf(hapi.Login))
-	js.Global().Set("pubTD", js.FuncOf(hapi.PubTD))
 	js.Global().Set("pubEvent", js.FuncOf(hapi.PubEvent))
-	js.Global().Set("pubProperties", js.FuncOf(hapi.PubProperties))
 	js.Global().Set("subActions", js.FuncOf(hapi.SubActions))
 	js.Global().Set("gostop", js.FuncOf(Gostop))
 	//time.Sleep(time.Millisecond * 100)

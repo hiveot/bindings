@@ -28,7 +28,7 @@ export function parseController(td: ThingTD, ctl: ZWaveController) {
     td.AddEvent("nodeRemoved", "nodeRemoved", "Node Removed", undefined,
         new DataSchema({title: "ThingID", type: DataType.String}))
 
-    // controller network actions FIXME: implement
+    // controller network actions
     td.AddAction("beginInclusion", "beginInclusion", "Start add node process",
         "Start the inclusion process for new nodes. Prefer S2 security if supported")
     td.AddAction("stopInclusion", "stopInclusion", "Stop add node process")
@@ -69,7 +69,7 @@ export function parseController(td: ThingTD, ctl: ZWaveController) {
             let title = propID
             let dataType = DataType.Unknown
             // FIXME: handle dataType, minValue, maxValue, options, unit, readOnly, writeOnly, unsigned
-            let prop = td.AddProperty(propID, undefined, title, dataType)
+            let prop = td.AddProperty(propID, "", title, dataType)
             prop.readOnly = false
         }
     }

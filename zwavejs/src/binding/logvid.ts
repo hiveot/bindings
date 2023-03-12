@@ -63,7 +63,7 @@ export function logVid(logFd: number | undefined, node?: ZWaveNode, vid?: Transl
     switch (vm.type) {
         case "duration":
         case "number" :
-        case "color" : {
+        case "color" :
             let vidNum = vm as ValueMetadataNumeric
             min = vidNum.min?.toString() || ""
             max = vidNum.max?.toString() || ""
@@ -71,23 +71,19 @@ export function logVid(logFd: number | undefined, node?: ZWaveNode, vid?: Transl
             if (vidNum.states) {
                 states = JSON.stringify(vidNum.states)
             }
-        }
             break;
-        case "buffer": {
+        case "buffer":
             let vidBuf = vm as ValueMetadataBuffer;
             min = vidBuf.minLength?.toString() || "";
             max = vidBuf.maxLength?.toString() || "";
-        }
             break;
-        case "string": {
+        case "string":
             let vidStr = vm as ValueMetadataString;
             min = vidStr.minLength?.toString() || "";
             max = vidStr.maxLength?.toString() || "";
-
-            other = vidStr.valueChangeOptions?.toString() || "";
-        }
             break;
     }
+    other = vm.valueChangeOptions?.toString() || "";
 
 
     let vidLine = `${time};${node.id};${vid?.commandClass};${vid?.commandClassName};${vid?.endpoint};` +

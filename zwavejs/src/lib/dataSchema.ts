@@ -1,7 +1,6 @@
 // Definition of the DataSchema used in TD affordances
 
 import {DataType} from "./vocabulary.js"
-import {getEnumMemberName} from "zwave-js";
 
 export class DataSchema extends Object {
     public constructor(init?: Partial<DataSchema>) {
@@ -76,10 +75,13 @@ export class DataSchema extends Object {
 
     // Add a list of enumerations to the schema.
     // This changes the schema to DataTypeString, fills in the enum array of strings, and
-    // sets initialValue to the converted string.
-    // enumeration is a map from enum values to names and vice-versa
+    // sets initialValue to the enum name.
+    //
+    // @param enumeration is a map from enum values to names and vice-versa
+    // @param initialValue is converted to name and stored in the schema as initialValue (for testing/debugging) 
     SetAsEnum(enumeration: Object, initialValue: number): DataSchema {
-        this.initialValue = getEnumMemberName(enumeration, initialValue)
+        let valueName = (enumeration as any)[initialValue] || String(initialValue);
+        this.initialValue = valueName
         this.enumTable = enumeration
         let keys = Object.values(enumeration)
         this.enum = keys.filter((key: any) => {

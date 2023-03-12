@@ -1,14 +1,18 @@
 import {getEnumMemberName, NodeStatus, ZWaveNode, ZWavePlusNodeType, ZWavePlusRoleType,} from "zwave-js";
 import {InterviewStage, SecurityClass} from '@zwave-js/core';
 import {PropTypes} from "../lib/vocabulary.js";
+import {getPropID} from "./getPropID.js";
 
 
 // Value map for node values
+// export type ParseValues = {[key:string]: any}
 
-export class ParseValues extends Map<string, any> {
+export class ParseValues {   //PropMapType { //extends Map<string, any> {
+    values: { [key: string]: any }
+
     // @param node: create the map for this node
     constructor(node?: ZWaveNode) {
-        super()
+        this.values = {}
         if (node) {
             this.parseNodeValues(node)
         }
@@ -18,7 +22,7 @@ export class ParseValues extends Map<string, any> {
     // Set a value if it is not undefined
     setIf(key: string, val: any) {
         if (val != undefined) {
-            this.set(key, val)
+            this.values[key] = val
         }
     }
 
@@ -26,10 +30,11 @@ export class ParseValues extends Map<string, any> {
     // This only returns values if they exist in the current map.
     diffValues(oldValues: ParseValues): ParseValues {
         let diffMap = new ParseValues()
-        for (let [key, newVal] of this) {
-            let oldVal = oldValues.get(key)
+        for (let key in Object(this.values)) {
+            let oldVal = oldValues.values[key]
+            let newVal = this.values[key]
             if (newVal !== oldVal) {
-                diffMap.set(key, newVal)
+                diffMap.values[key] = newVal
             }
         }
         return diffMap
@@ -98,18 +103,10 @@ export class ParseValues extends Map<string, any> {
         let vids = node.getDefinedValueIDs()
         for (let vid of vids) {
             let vidValue = node.getValue(vid)
-            let vidMeta = node.getValueMetadata(vid)
-            // TODO: map property names to vocabulary
-            let name = vid.propertyName || vid.property.toString()
-            // let propType = ValueTypeToDataType(vidMeta.type)
-
-            this.setIf(name, vidValue)
+            let propID = getPropID(vid)
+            this.setIf(propID, vidValue)
         }
     }
 
-    // serialize this map to a JSON document
-    serialize(): string {
-        return JSON.stringify(this)
-    }
 }
 

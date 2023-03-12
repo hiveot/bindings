@@ -1,13 +1,13 @@
 import type {TranslatedValueID, ZWaveNode} from "zwave-js";
+import {InterviewStage} from "zwave-js";
 import type {HubAPI} from "../lib/hubapi.js";
 import {parseNode} from "./parseNode.js";
-import type {ThingTD} from "../lib/thing.js";
 import {ParseValues} from "./parseValues.js";
 import {ZWAPI} from "./zwapi.js";
 import {parseController} from "./parseController.js";
 import {logVid} from "./logvid.js";
 import {getPropID} from "./getPropID.js";
-import {EventTypes} from "../lib/vocabulary.js";
+import {ActionTypes, EventTypes, PropTypes} from "../lib/vocabulary.js";
 
 // binding.ts holds the entry point to the zwave binding along with its configuration
 
@@ -22,7 +22,7 @@ export class ZwaveBinding {
     // the last received values for each node by deviceID
     lastValues = new Map<string, ParseValues>(); // nodeId: ValueMap
     // the last published values for each node by deviceID
-    publishedValues = new Map<string, ParseValues>();
+    // publishedValues = new Map<string, ParseValues>();
     vidLogFile: string | undefined
     vidLogFD: number | undefined
     // only publish events when a value has changed
@@ -53,20 +53,20 @@ export class ZwaveBinding {
             case "dead":
             case "awake":
             case "sleeping": {
-                this.hapi.pubEvent(thingID, EventTypes.Status, newState).then()
+                this.hapi.pubEvent(thingID, EventTypes.Status, newState)
             }
                 break;
             case "interview completed":
             case "interview failed":
             case "interview started": {
-                this.hapi.pubEvent(thingID, "interview", newState).then()
+                this.hapi.pubEvent(thingID, "interview", newState)
             }
                 break;
         }
     }
 
-    // Handle discovery or update of a node and publish its TD event
-    // This establishes the first value map to update with handleValueUpdate events
+    // Handle discovery or update of a node.
+    // This publishes the TD and its property values
     handleNodeUpdate(node: ZWaveNode) {
         console.log("handleNodeUpdate:node:", node.id);
         let thingTD = parseNode(this.zwapi, node, this.vidLogFD);
@@ -74,94 +74,135 @@ export class ZwaveBinding {
         if (node.isControllerNode) {
             parseController(thingTD, this.zwapi.driver.controller)
         }
+        // republish the TD and its values
+        this.hapi.pubTD(thingTD.id, thingTD)
 
-        this.publishTD(thingTD.id, thingTD);
+        let newValues = new ParseValues(node);
+        let lastNodeValues = this.lastValues.get(thingTD.id)
+        let diffValues = newValues
+        if (lastNodeValues) {
+            diffValues = lastNodeValues.diffValues(newValues)
+        }
+        this.hapi.pubProperties(thingTD.id, diffValues.values)
+        this.lastValues.set(thingTD.id, newValues);
 
-        let valueMap = new ParseValues(node);
-        this.lastValues.set(thingTD.id, valueMap);
-        this.publishProperties(thingTD.id, valueMap)
     }
 
     // Handle update of a node's value.
+    // This publishes an event if the value changed or 'publishOnlyChanges' is false
     // @param node: The node whos values have updated
     // @param vid: zwave value id
     // @param newValue: the updated value
     handleValueUpdate(node: ZWaveNode, vid: TranslatedValueID, newValue: any) {
-        // submit the value or its name?
-        // use value. translation to name using enum is a UI job
-        let vidMeta = node.getValueMetadata(vid)
-        // if (vidMeta.type == "number") {
-        //   let vmNumeric = vidMeta as ValueMetadataNumeric
-        //   if (vmNumeric.states) {
-        //     newValueName = vmNumeric.states[newValue]
-        //   }
-        // }
         let deviceID = this.zwapi.getDeviceID(node.id)
         let propID = getPropID(vid)
         let valueMap = this.lastValues.get(deviceID);
         // update the map of recent values
-        let lastValue = valueMap?.get(propID)
-        if (lastValue !== newValue || !this.publishOnlyChanges) {
-            valueMap?.set(propID, newValue)
-            this.publishEvent(deviceID, propID, newValue)
+        let lastValue = valueMap?.values[propID]
+        if (valueMap && (lastValue !== newValue || !this.publishOnlyChanges)) {
+            valueMap.values[propID] = newValue
+            //
+            let serValue = JSON.stringify(newValue)
+            this.hapi.pubEvent(deviceID, propID, serValue)
         }
     }
 
     // periodically publish the properties that have updated
-    publishPropertyUpdates() {
-        for (let [deviceID, valueMap] of this.lastValues) {
-            let node = this.zwapi.getNodeByDeviceID(deviceID)
-            if (node) {
-                let publishedValues = this.publishedValues.get(deviceID)
-                let diffValues = publishedValues ? valueMap.diffValues(publishedValues) : valueMap;
-                if (diffValues.size > 0) {
-                    this.publishProperties(deviceID, diffValues);
-                }
-            } else {
-                // node no longer exist. Remove it.
-                this.lastValues.delete(deviceID)
-            }
-        }
-    }
-
-    // Publish event
-    publishEvent(thingID: string, eventName: string, eventDoc: any) {
-        let evJSON = JSON.stringify(eventDoc, null, " ")
-        this.hapi.pubEvent(thingID, eventName, evJSON).then()
-        console.info(`* Publishing event ${eventName} for device ${thingID}: ${evJSON}`)
-    }
-
-    // Publish node properties
-    publishProperties(thingID: string, valueMap: ParseValues) {
-        // this.hivePubSub.Publish(deviceID, valueMap)
-        let valueJSON = JSON.stringify(valueMap, null, " ")
-        console.log("* Publishing properties event for thing", thingID, ":", valueJSON)
-        this.hapi.pubProperties(thingID, valueMap)
-    }
-
-    // publish a TD document
-    publishTD(thingID: string, td: ThingTD) {
-        let tdJSON = JSON.stringify(td, null, " ")
-        console.log("* Publishing TD: nodeID=", thingID)
-        this.hapi.pubTD(thingID, td["@type"], tdJSON).then()
-    }
+    // publishPropertyUpdates() {
+    //     for (let [deviceID, valueMap] of this.lastValues) {
+    //         let node = this.zwapi.getNodeByDeviceID(deviceID)
+    //         if (node) {
+    //             let publishedValues = this.publishedValues.get(deviceID)
+    //             let diffValues = publishedValues ? valueMap.diffValues(publishedValues) : valueMap;
+    //             this.hapi.pubProperties(deviceID, diffValues)
+    //         } else {
+    //             // node no longer exist. Remove it.
+    //             this.lastValues.delete(deviceID)
+    //         }
+    //     }
+    // }
 
     // subscribe to actions
-    async subActions() {
-        await this.hapi.subActions(
+    subActions() {
+        this.hapi.subActions(
             (thingID: string, actionID: string, params: string) => {
+                let actionLower = actionID.toLowerCase()
+                let targetNode: ZWaveNode | undefined
                 let node = this.zwapi.getNodeByDeviceID(thingID)
                 if (node == undefined) {
                     console.error("subActions: unable to find node for thingID", thingID)
                     return
                 }
-                // TODO: keep a map of propID to vid's
-                for (let vid of node.getDefinedValueIDs()) {
-                    let propID = getPropID(vid)
-                    if (propID == actionID) {
-                        this.zwapi.setValue(node, vid, params)
+                console.info("action:" + actionID)
+                // controller specific commands (see parseController)
+                switch (actionLower) {
+                    case "begininclusion":
+                        this.zwapi.driver.controller.beginInclusion().then()
                         break;
-                    }
+                    case "stopinclusion":
+                        this.zwapi.driver.controller.stopInclusion().then()
+                        break;
+                    case "beginexclusion":
+                        this.zwapi.driver.controller.beginExclusion().then()
+                        break;
+                    case "stopexclusion":
+                        this.zwapi.driver.controller.stopExclusion().then()
+                        break;
+                    case "beginhealingnetwork":
+                        this.zwapi.driver.controller.beginHealingNetwork()
+                        break;
+                    case "stophealingnetwork":
+                        this.zwapi.driver.controller.stopHealingNetwork()
+                        break;
+                    case "getNodeNeighbors": // param nodeID
+                        targetNode = this.zwapi.getNodeByDeviceID(params)
+                        if (targetNode) {
+                            this.zwapi.driver.controller.getNodeNeighbors(targetNode.id).then();
+                        }
+                        break;
+                    case "healNode": // param nodeID
+                        targetNode = this.zwapi.getNodeByDeviceID(params)
+                        if (targetNode) {
+                            this.zwapi.driver.controller.healNode(targetNode.id).then();
+                        }
+                        break;
+                    case "removeFailedNode": // param nodeID
+                        targetNode = this.zwapi.getNodeByDeviceID(params)
+                        if (targetNode) {
+                            this.zwapi.driver.controller.removeFailedNode(targetNode.id).then();
+                        }
+                        break;
+                    // Special management actions that are accessible by writing configuration updates that are not VIDs
+                    case PropTypes.Name.toLowerCase():
+                        node.name = params;
+                        break;
+                    case "checklifelinehealth":
+                        node.checkLifelineHealth().then()
+                        break;
+                    case ActionTypes.Ping.toLowerCase():
+                        node.ping().then((success) => {
+                            this.hapi.pubEvent(thingID, ActionTypes.Ping, success ? "success" : "fail")
+                        })
+                        break;
+                    case "refreshinfo":
+                        // do not use when node interview is not yet complete
+                        if (node.interviewStage == InterviewStage.Complete) {
+                            node.refreshInfo({waitForWakeup: true}).then()
+                        }
+                        break;
+                    case  "refreshvalues":
+                        node.refreshValues().then()
+                        break;
+                    default:
+                        // VID based configuration and actions
+                        //  currently propertyIDs are also accepted.
+                        for (let vid of node.getDefinedValueIDs()) {
+                            let propID = getPropID(vid)
+                            if (propID.toLowerCase() == actionLower) {
+                                this.zwapi.setValue(node, vid, params)
+                                break;
+                            }
+                        }
                 }
             })
     }

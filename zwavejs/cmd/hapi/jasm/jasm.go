@@ -37,7 +37,7 @@ func ArrayBuffer(data []byte) js.Value {
 }
 
 // Await creates a promise which allows any async code within the WASM program.
-// Without that, IO/network operations will be a blocking request and will make the
+// Without that, IO/network operations will be a blocking request and will make
 // the program go kaput.
 func Await(cb func() (js.Value, error)) js.Value {
 	handler := js.FuncOf(func(this js.Value, args []js.Value) interface{} {
