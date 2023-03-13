@@ -28,41 +28,46 @@ func (binding *OWServerBinding) CreateTDFromNode(node *eds.OneWireNode) (tdoc *t
 	for attrName, attr := range node.Attr {
 		// sensors are added as both properties and events
 		if attr.IsSensor {
+			evType := attr.VocabType
+			var evSchema *thing.DataSchema
 			// sensors emit events
 			eventID := attrName
 			title := attr.Name
-			evAff := tdoc.AddEvent(eventID, attr.VocabType, title, "")
 			// only add data schema if the event carries a value
 			if attr.DataType != vocab.WoTDataTypeNone {
-				evAff.Data = &thing.DataSchema{
+				evSchema = &thing.DataSchema{
 					Type:         attr.DataType,
 					Unit:         attr.Unit,
 					InitialValue: attr.Value,
 				}
 				if attr.Unit != "" {
-					evAff.Data.InitialValue += " " + attr.Unit
+					evSchema.InitialValue += " " + attr.Unit
 				}
 			}
+			tdoc.AddEvent(eventID, evType, title, "", evSchema)
 
 		} else if attr.IsActuator {
+			// TODO: determine action @type
+			var inputSchema *thing.DataSchema
 			actionID := attrName
-			actionAff := tdoc.AddAction(actionID, attr.VocabType, attr.Name, "")
-
+			actionType := attr.VocabType
 			// only add data schema if the action accepts parameters
 			if attr.DataType != vocab.WoTDataTypeNone {
-				actionAff.Input = &thing.DataSchema{
+				inputSchema = &thing.DataSchema{
 					Type: attr.DataType,
 					Unit: attr.Unit,
 				}
 			}
+			tdoc.AddAction(actionID, actionType, attr.Name, "", inputSchema)
 		} else {
-			// TODO: map properties to type where possible
-			prop := tdoc.AddProperty(attrName, "", attr.Name, attr.DataType)
-			prop.Unit = attr.Unit
-			prop.InitialValue = attr.Value
+			// TODO: determine property @type
+			propType := ""
+			initialValue := attr.Value
 			if attr.Unit != "" {
-				prop.InitialValue += " " + attr.Unit
+				initialValue += " " + attr.Unit
 			}
+			prop := tdoc.AddProperty(attrName, propType, attr.Name, attr.DataType, initialValue)
+			prop.Unit = attr.Unit
 			// non-sensors are attributes. Writable attributes are configuration.
 			if attr.Writable {
 				prop.ReadOnly = false

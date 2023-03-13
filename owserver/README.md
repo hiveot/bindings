@@ -38,6 +38,6 @@ This binding:
 
 ## Usage
 
-This binding runs out of the box. Build and install with the hub services into the bin/bindings folder and start it using the launcher.
+This binding runs out of the box. Build and install with the hub services into the installation bin/bindings folder and start it using the launcher.
 
 Out of the box it will use MDNS discovery to locate an owserver gateway on the network. Once started, the binding is added to the directory, as is the discovered owserver gateway. It can be viewed using the cli or hiveoview web server.
