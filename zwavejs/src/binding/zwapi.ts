@@ -12,10 +12,35 @@ import {
     ZWaveNodeValueRemovedArgs,
     ZWaveNodeValueUpdatedArgs,
 } from "zwave-js";
-import md5 from "md5";
 
-// FIXME: from config
-const DefaultNetworkPassword = "My name is groot";
+// ports to check with for automatic discovery of ports
+const AutoPorts = [
+    "/dev/ttyACM0",
+    "/dev/ttyACM1",
+    "/dev/ttyACM2",
+    "/dev/ttyAMA0",
+    "/dev/ttyAMA1",
+    "/dev/ttyAMA2",
+    "/dev/ttyS0",
+    "/dev/ttyS1",
+]
+
+// Configuration of the ZWaveJS driver
+export interface ZWaveConfig {
+    // These keys are generated with "< /dev/urandom tr -dc A-F0-9 | head -c32 ;echo"
+    // or use MD5(password text)
+    S2_Unauthenticated: string
+    S2_Authenticated: string
+    S2_AccessControl: string
+    S2_Legacy: string
+    //
+    zwPort: string | undefined,                     // controller port: ""=auto, /dev/ttyACM0, ...
+    zwLogFile: string | undefined       // driver logfile if any
+    zwLogLevel: "error" | "warn" | "info" | "verbose" | "debug" | "",      // driver log level, "" no logging
+    //
+    cacheDir: string | undefined          // alternate storage directory
+}
+
 
 // ZWAPI is a wrapper around zwave-js for use by the HiveOT binding.
 // Its primary purpose is to hide the ZWave specific logic from the binding; offer a simple API to
@@ -32,7 +57,7 @@ export class ZWAPI {
     onNodeUpdate: (node: ZWaveNode) => void;
 
     // callback to notify of a change in VID value
-    onValueUpdate: (node: ZWaveNode, v: TranslatedValueID, newValue: any) => void;
+    onValueUpdate: (node: ZWaveNode, v: TranslatedValueID, newValue: unknown) => void;
 
     // discovered nodes
     nodes: Map<string, ZWaveNode>;
@@ -41,7 +66,7 @@ export class ZWAPI {
         // handler for node VID or Metadata updates
         onNodeUpdate: (node: ZWaveNode) => void,
         // handler for node property value updates
-        onValueUpdate: (node: ZWaveNode, v: TranslatedValueID, newValue: any) => void,
+        onValueUpdate: (node: ZWaveNode, v: TranslatedValueID, newValue: unknown) => void,
         // handler for node state updates
         onStateUpdate: (node: ZWaveNode, newState: string) => void) {
 
@@ -61,48 +86,51 @@ export class ZWAPI {
     }
 
     // connect initializes the zwave-js driver and connect it to the ZWave controller.
-    // @remarks
-    // Connect does not end until disconnect is called..
+    // @remarks: Connect does not return until disconnect is called..
     //
-    // @param port device to use or "" to auto discover
-    // @param enableSIS
-    // @param keys .. tbd
-    // @param onReady
-    // @param onNodeUpdate
-    async connect() {
-        // FIXME: these security keys are manually generated. They should be obtained from config
+    // @param zwConfig driver configuration
+    async connect(zwConfig: ZWaveConfig) {
+        // autoconfig the zwave port if none given
+        let zwPort = zwConfig.zwPort || ""
+        if (!zwPort) {
+            // use the first available serial port
+            // TODO: ideally this checks if the port can be used
+            for (let port of AutoPorts) {
+                if (fs.existsSync(port)) {
+                    zwPort = port
+                    break
+                }
+            }
+        }
+
         // or generated at a new install.
-        let legacyKey = md5(DefaultNetworkPassword);
         let options = {
             securityKeys: {
-                // These keys are generated with "< /dev/urandom tr -dc A-F0-9 | head -c32 ;echo"
-                S2_Unauthenticated: Buffer.from("1B455E0AE8724577D88C26B39E0504AC", "hex"),
-                S2_Authenticated: Buffer.from("C67D1268B66A822D2EA9C026B6E89EE6", "hex"),
-                S2_AccessControl: Buffer.from("9F7571802DB6B61BF0AD78649E78CE2E", "hex"),
-                // S0_Legacy replaces the old networkKey option
-                S0_Legacy: Buffer.from("0102030405060708090a0b0c0d0e0f10", "hex"),
-                //  "3919ac57ecb692d7a84e36f39196f765")
-                // S0_Legacy: Buffer.from(legacyKey, "hex"),
+                // These keys should be generated with "< /dev/urandom tr -dc A-F0-9 | head -c32 ;echo"
+                S2_Unauthenticated: Buffer.from(zwConfig.S2_Unauthenticated, "hex"),
+                S2_Authenticated: Buffer.from(zwConfig.S2_Authenticated, "hex"),
+                S2_AccessControl: Buffer.from(zwConfig.S2_AccessControl, "hex"),
+                S0_Legacy: Buffer.from(zwConfig.S2_Legacy, "hex"),
             },
             // wait for the device verification before sending value updated event.
             //  instead some kind of 'pending' status should be tracked.
             emitValueUpdateAfterSetValue: false,
             //
             logConfig: {
-                enabled: true,
-                level: "http",
-                // logToFile: true,
+                enabled: (zwConfig.zwLogLevel != ""),
+                level: zwConfig.zwLogLevel,
+                logToFile: !!(zwConfig.zwLogFile),
+                filename: zwConfig.zwLogFile,
             },
-            // storage: {
-            // allow for a different cache directory
-            // cacheDir: "config/zwavejs",
-            // },
+            storage: {
+                // allow for a different cache directory
+                cacheDir: zwConfig.cacheDir,
+            },
         };
 
         // Start the driver. To await this method, put this line into an async method
-        // TODO: take port from config
         // TODO: auto-detect port if no config is provided
-        this.driver = new Driver("/dev/ttyACM0", options);
+        this.driver = new Driver(zwPort, options);
 
         // You must add a handler for the error event before starting the driver
         this.driver.on("error", (e) => {
@@ -320,7 +348,7 @@ export class ZWAPI {
     // @param vid: valueID parameter to set
     // @param params: parameters containing the value(s) to set
     setValue(node: ZWaveNode, vid: TranslatedValueID, params: string) {
-        let dataToSet: any
+        let dataToSet: unknown
         let vidMeta = node.getValueMetadata(vid)
 
         switch (vidMeta.type) {
@@ -337,7 +365,7 @@ export class ZWAPI {
                 } else {
                     dataToSet = Number(params)
                 }
-                if (isNaN(dataToSet)) {
+                if (isNaN(dataToSet as number)) {
                     dataToSet = undefined
                 }
                 break;

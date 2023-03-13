@@ -323,7 +323,7 @@ function SetDataSchema(ds: DataSchema | undefined, node: ZWaveNode, vid: Transla
     }
     // what can we do with ccSpecific?
     if (vidMeta.ccSpecific) {
-        // let addVal: any
+        // let addVal: unknown
         // switch (vid.commandClass) {
         //     case CommandClasses["Alarm Sensor"]:
         //         addVal = vidMeta.ccSpecific.sensorType;

@@ -1,45 +1,47 @@
+// binding.ts holds the entry point to the zwave binding along with its configuration
 import type {TranslatedValueID, ZWaveNode} from "zwave-js";
 import {InterviewStage} from "zwave-js";
 import type {HubAPI} from "../lib/hubapi.js";
 import {parseNode} from "./parseNode.js";
 import {ParseValues} from "./parseValues.js";
-import {ZWAPI} from "./zwapi.js";
+import {ZWAPI, ZWaveConfig} from "./zwapi.js";
 import {parseController} from "./parseController.js";
 import {logVid} from "./logvid.js";
 import {getPropID} from "./getPropID.js";
 import {ActionTypes, EventTypes, PropTypes} from "../lib/vocabulary.js";
 
-// binding.ts holds the entry point to the zwave binding along with its configuration
+
+export interface BindingConfig extends ZWaveConfig {
+    // logging of discovered value IDs to CSV. Intended for testing
+    vidCsvFile: string | undefined
+}
 
 // ZWaveBinding maps ZWave nodes to Thing TDs and events, and handles actions to control node inputs.
-// TODO: Load binding config
-// TODO: handle actions
-// TODO: handle configuration
 export class ZwaveBinding {
-    id: string = "zwave";
+    // id: string = "zwave";
     hapi: HubAPI;
     zwapi: ZWAPI;
     // the last received values for each node by deviceID
     lastValues = new Map<string, ParseValues>(); // nodeId: ValueMap
     // the last published values for each node by deviceID
     // publishedValues = new Map<string, ParseValues>();
-    vidLogFile: string | undefined
-    vidLogFD: number | undefined
+    vidCsvFD: number | undefined
     // only publish events when a value has changed
     publishOnlyChanges: boolean = false
+    config: BindingConfig
 
 
     // @param hapi: connectd Hub API to publish and subscribe
     // @param vidLogFile: optional csv file to write discovered VID and metadata records
-    constructor(hapi: HubAPI, vidLogFile?: string) {
+    constructor(hapi: HubAPI, config: BindingConfig) {
         this.hapi = hapi;
+        this.config = config
         // zwapi handles the zwavejs specific details
         this.zwapi = new ZWAPI(
             this.handleNodeUpdate.bind(this),
             this.handleValueUpdate.bind(this),
             this.handleNodeStateUpdate.bind(this),
         );
-        this.vidLogFile = vidLogFile
     }
 
     // Handle update of one of the node state flags
@@ -69,7 +71,7 @@ export class ZwaveBinding {
     // This publishes the TD and its property values
     handleNodeUpdate(node: ZWaveNode) {
         console.log("handleNodeUpdate:node:", node.id);
-        let thingTD = parseNode(this.zwapi, node, this.vidLogFD);
+        let thingTD = parseNode(this.zwapi, node, this.vidCsvFD);
 
         if (node.isControllerNode) {
             parseController(thingTD, this.zwapi.driver.controller)
@@ -93,7 +95,7 @@ export class ZwaveBinding {
     // @param node: The node whos values have updated
     // @param vid: zwave value id
     // @param newValue: the updated value
-    handleValueUpdate(node: ZWaveNode, vid: TranslatedValueID, newValue: any) {
+    handleValueUpdate(node: ZWaveNode, vid: TranslatedValueID, newValue: unknown) {
         let deviceID = this.zwapi.getDeviceID(node.id)
         let propID = getPropID(vid)
         let valueMap = this.lastValues.get(deviceID);
@@ -213,21 +215,21 @@ export class ZwaveBinding {
         console.log("startup");
 
         // optional logging of discovered VID
-        if (this.vidLogFile) {
-            this.vidLogFD = fs.openSync(this.vidLogFile, "w+", 0o640)
-            logVid(this.vidLogFD)
+        if (this.config.vidCsvFile) {
+            this.vidCsvFD = fs.openSync(this.config.vidCsvFile, "w+", 0o640)
+            logVid(this.vidCsvFD)
         }
         this.subActions()
         // await this.hapi.subConfig(this.handleConfig)
-        await this.zwapi.connect();
+        await this.zwapi.connect(this.config);
     }
 
     // Stop the binding and disconnect from the ZWave controller
     async stop() {
         console.log("Shutting Down...");
         await this.zwapi.disconnect();
-        if (this.vidLogFD) {
-            fs.close(this.vidLogFD)
+        if (this.vidCsvFD) {
+            fs.close(this.vidCsvFD)
         }
         process.exit(0);
     }

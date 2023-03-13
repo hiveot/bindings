@@ -5,10 +5,8 @@ import {getPropID} from "./getPropID.js";
 
 
 // Value map for node values
-// export type ParseValues = {[key:string]: any}
-
-export class ParseValues {   //PropMapType { //extends Map<string, any> {
-    values: { [key: string]: any }
+export class ParseValues {
+    values: { [key: string]: unknown }
 
     // @param node: create the map for this node
     constructor(node?: ZWaveNode) {
@@ -20,7 +18,7 @@ export class ParseValues {   //PropMapType { //extends Map<string, any> {
 
 
     // Set a value if it is not undefined
-    setIf(key: string, val: any) {
+    setIf(key: string, val: unknown) {
         if (val != undefined) {
             this.values[key] = val
         }
